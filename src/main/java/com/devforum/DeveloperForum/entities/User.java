@@ -5,6 +5,7 @@ import com.devforum.DeveloperForum.enums.ReputationRank;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -21,7 +22,7 @@ public class User {
     String password;
 
     @Temporal(TemporalType.DATE)
-    Date registerDate;
+    LocalDate registerDate;
 
     @Enumerated(EnumType.STRING)
     ReputationRank reputationRank;
