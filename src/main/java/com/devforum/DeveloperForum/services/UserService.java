@@ -2,12 +2,14 @@ package com.devforum.DeveloperForum.services;
 
 import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.enums.ReputationRank;
-import com.devforum.DeveloperForum.exceptions.EmailAlreadyExistsException;
-import com.devforum.DeveloperForum.exceptions.NoUpdateProvidedException;
-import com.devforum.DeveloperForum.exceptions.UserNotFoundException;
-import com.devforum.DeveloperForum.exceptions.UsernameAlreadyExistsException;
+import com.devforum.DeveloperForum.exceptions.GlobalExceptions.NoUpdateProvidedException;
+import com.devforum.DeveloperForum.exceptions.UserExceptions.EmailAlreadyExistsException;
+import com.devforum.DeveloperForum.exceptions.UserExceptions.IncorrectUserDataException;
+import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
+import com.devforum.DeveloperForum.exceptions.UserExceptions.UsernameAlreadyExistsException;
 import com.devforum.DeveloperForum.repositories.UserRepository;
 import com.devforum.DeveloperForum.requests.CreateUserRequest;
+import com.devforum.DeveloperForum.requests.DeleteUserRequest;
 import com.devforum.DeveloperForum.requests.UpdateUserRequest;
 import com.devforum.DeveloperForum.responses.UserResponse;
 import org.springframework.stereotype.Service;
@@ -61,6 +63,10 @@ public class UserService {
         if(user == null){
             throw new UserNotFoundException("The user that you're trying to update doesn't exist.");
         }
+
+        if(!user.getPassword().equals(userRequest.getOldPassword())){
+            throw new IncorrectUserDataException("Current password data provided doesn't match.");
+        }
         if(userRequest.equals(new UpdateUserRequest(user)))
             throw new NoUpdateProvidedException("No information about the user is requested to be updated.");
 
@@ -87,5 +93,17 @@ public class UserService {
         }
 
         return userRepository.save(user);
+    }
+
+    public void deleteUserById(Long userId, DeleteUserRequest deleteUserRequest) {
+        User user = userRepository.findById(userId).orElse(null);
+        if(user == null)
+            throw new UserNotFoundException("There's no user with given id to delete.");
+        if(!user.getPassword().equals(deleteUserRequest.getPassword()))
+            throw new IncorrectUserDataException("Password provided is incorrect.");
+        if(!user.getEmail().equals(deleteUserRequest.getEmail()))
+            throw new IncorrectUserDataException("Email provided is incorrect.");
+        userRepository.deleteById(userId);
+
     }
 }

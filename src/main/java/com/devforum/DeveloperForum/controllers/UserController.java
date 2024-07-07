@@ -1,13 +1,13 @@
 package com.devforum.DeveloperForum.controllers;
 
 import com.devforum.DeveloperForum.entities.User;
-import com.devforum.DeveloperForum.exceptions.UserNotFoundException;
+import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.requests.CreateUserRequest;
+import com.devforum.DeveloperForum.requests.DeleteUserRequest;
 import com.devforum.DeveloperForum.requests.UpdateUserRequest;
 import com.devforum.DeveloperForum.responses.UserResponse;
 import com.devforum.DeveloperForum.services.UserService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,6 +48,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public User updateUserById(@PathVariable Long userId, @RequestBody UpdateUserRequest userRequest){
         return userService.updateUserById(userId, userRequest);
+    }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUserById(@PathVariable Long userId, @RequestBody DeleteUserRequest deleteUserRequest){
+        userService.deleteUserById(userId, deleteUserRequest);
     }
 
 }

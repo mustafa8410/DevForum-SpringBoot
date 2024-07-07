@@ -1,4 +1,4 @@
-package com.devforum.DeveloperForum.exceptions;
+package com.devforum.DeveloperForum.exceptions.UserExceptions;
 
 public class UserNotFoundException extends RuntimeException{
     public UserNotFoundException() {

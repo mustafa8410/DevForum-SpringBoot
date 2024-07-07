@@ -8,12 +8,14 @@ public class UpdateUserRequest {
     String email;
     String name;
     String username;
+    String oldPassword;
     String password;
 
     public UpdateUserRequest(User entity){
         this.email = entity.getEmail();
         this.name = entity.getName();
         this.username = entity.getUsername();
+        this.oldPassword = entity.getPassword();
         this.password = entity.getPassword();
     }
 

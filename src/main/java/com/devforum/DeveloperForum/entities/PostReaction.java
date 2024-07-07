@@ -21,4 +21,5 @@ public class PostReaction {
     @JoinColumn(name = "post_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     Post post;
+
 }
