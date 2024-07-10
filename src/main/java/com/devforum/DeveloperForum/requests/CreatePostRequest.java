@@ -13,5 +13,4 @@ public class CreatePostRequest {
     String text;
     String postCategory;
     String postTag;
-    String userPassword;
 }

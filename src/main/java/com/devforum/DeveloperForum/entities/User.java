@@ -29,4 +29,6 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     HelpfulRank helpfulRank;
+
+    Long interactionCount;
 }

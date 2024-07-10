@@ -54,6 +54,7 @@ public class UserService {
         newUser.setRegisterDate(LocalDate.now());
         newUser.setHelpfulRank(null);
         newUser.setReputationRank(ReputationRank.ROOKIE);
+        newUser.setInteractionCount(0L);
         return userRepository.save(newUser);
     }
 

@@ -56,8 +56,6 @@ public class PostService {
         User user = userRepository.findById(postRequest.getUserId()).orElse(null);
         if(user == null)
             throw new UserNotFoundException("There are no users with given id.");
-        if(!user.getPassword().equals(postRequest.getUserPassword()))
-            throw new IncorrectUserDataException("User password is invalid.");
         PostCategory postCategory = PostCategory.valueOf(postRequest.getPostCategory().toUpperCase());
         PostTag postTag = PostTag.valueOf(postRequest.getPostTag().toUpperCase());
         Post newPost = new Post();
@@ -74,13 +72,6 @@ public class PostService {
         Post post = postRepository.findById(postId).orElse(null);
         if(post == null)
             throw new PostNotFoundException("There are no posts with given ID.");
-        User user = userRepository.findById(updatePostRequest.getUserId()).orElse(null);
-        if(!post.getUser().equals(user)){
-            throw new UserNotFoundException("Given user couldn't be found.");
-        }
-        else if (!user.getPassword().equals(updatePostRequest.getUserPassword())){
-            throw new IncorrectUserDataException("Given user password is incorrect.");
-        }
         PostCategory postCategory = PostCategory.valueOf(updatePostRequest.getPostCategory().toUpperCase());
         PostTag postTag = PostTag.valueOf(updatePostRequest.getPostTag().toUpperCase());
         post.setText(updatePostRequest.getText());
@@ -90,15 +81,10 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    public void deletePostById(Long postId, DeletePostRequest deletePostRequest) {
+    public void deletePostById(Long postId) {
         Post toDelete = postRepository.findById(postId).orElse(null);
         if(toDelete == null)
             throw new PostNotFoundException("This post doesn't exist already.");
-        User user = toDelete.getUser();
-        if(!user.getEmail().equals(deletePostRequest.getEmail()))
-            throw new IncorrectUserDataException("Email provided is invalid.");
-        else if(!user.getPassword().equals(deletePostRequest.getPassword()))
-            throw new IncorrectUserDataException("Password provided is invalid.");
         postRepository.delete(toDelete);
     }
 }
