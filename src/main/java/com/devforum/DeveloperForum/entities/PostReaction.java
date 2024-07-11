@@ -22,4 +22,5 @@ public class PostReaction {
     @OnDelete(action = OnDeleteAction.CASCADE)
     Post post;
 
+    Long reactorId;
 }

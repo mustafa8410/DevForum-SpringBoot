@@ -15,6 +15,7 @@ public class UserResponse {
     LocalDate registerDate;
     ReputationRank reputationRank;
     HelpfulRank helpfulRank;
+    Long interactionCount;
 
     public UserResponse(User entity) {
         this.id = entity.getId();
@@ -23,5 +24,6 @@ public class UserResponse {
         this.registerDate = entity.getRegisterDate();
         this.reputationRank = entity.getReputationRank();
         this.helpfulRank = entity.getHelpfulRank();
+        this.interactionCount = entity.getInteractionCount();
     }
 }

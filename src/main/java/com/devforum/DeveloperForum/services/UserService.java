@@ -1,6 +1,7 @@
 package com.devforum.DeveloperForum.services;
 
 import com.devforum.DeveloperForum.entities.User;
+import com.devforum.DeveloperForum.enums.HelpfulRank;
 import com.devforum.DeveloperForum.enums.ReputationRank;
 import com.devforum.DeveloperForum.exceptions.GlobalExceptions.NoUpdateProvidedException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.EmailAlreadyExistsException;
@@ -55,6 +56,8 @@ public class UserService {
         newUser.setHelpfulRank(null);
         newUser.setReputationRank(ReputationRank.ROOKIE);
         newUser.setInteractionCount(0L);
+        newUser.setHelpfulCount(0L);
+        newUser.setHelpfulCount(null);
         return userRepository.save(newUser);
     }
 

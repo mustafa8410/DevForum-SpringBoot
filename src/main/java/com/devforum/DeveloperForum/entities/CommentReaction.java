@@ -21,4 +21,6 @@ public class CommentReaction {
     @JoinColumn(name = "comment_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     Comment comment;
+
+    Long reactorId;
 }
