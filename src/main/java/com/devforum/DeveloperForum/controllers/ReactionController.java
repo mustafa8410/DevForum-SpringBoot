@@ -21,14 +21,27 @@ public class ReactionController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.FOUND)
-    public List<ReactionResponse> getAllReactions(@RequestParam Optional<String> reactionTo){
-        return reactionService.getAllReactions(reactionTo);
+    public List<ReactionResponse> getAllReactions(@RequestParam Optional<String> reactionTo, Optional<Long> entityId){
+        return reactionService.getAllReactions(reactionTo, entityId);
     }
 
     @GetMapping("/{reactionId}")
     @ResponseStatus(HttpStatus.FOUND)
     public ReactionResponse findReactionById(@PathVariable Long reactionId, @RequestParam String reactionTo){
         return reactionService.findReactionById(reactionId, reactionTo);
+    }
+
+    @GetMapping("/numbers/{entityId}")
+    @ResponseStatus(HttpStatus.FOUND)
+    public List<Long> getNumberOfReactionsToEntity(@PathVariable Long entityId, @RequestParam String reactionTo){
+        return reactionService.getNumberOfReactionsToEntity(entityId, reactionTo);
+    }
+
+    @GetMapping()
+    @ResponseStatus(HttpStatus.FOUND)
+    public ReactionResponse findReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
+                                                            @RequestParam String reactionTo){
+        return reactionService.findReactionByUserIdAndEntityId(userId, entityId, reactionTo);
     }
 
     @PostMapping()
@@ -43,9 +56,13 @@ public class ReactionController {
         return reactionService.updateReactionById(reactionId,newReaction);
     }
 
-    @GetMapping("/numbers/{entityId}")
-    @ResponseStatus(HttpStatus.FOUND)
-    public List<Long> getNumberOfReactionsToEntity(@PathVariable Long entityId, @RequestParam String reactionTo){
-        return reactionService.getNumberOfReactionsToEntity(entityId, reactionTo);
+
+
+    @DeleteMapping("/reactionId")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteReactionById(@PathVariable Long reactionId, @RequestParam String reactionTo){
+        reactionService.deleteReactionById(reactionId, reactionTo);
     }
+
+
 }

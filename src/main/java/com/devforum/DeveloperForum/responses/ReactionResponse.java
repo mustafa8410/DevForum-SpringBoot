@@ -11,12 +11,14 @@ public class ReactionResponse {
     Long reactionId;
     ReactionType reactionType;
     Long reactedEntityId;
+    Long reactorId;
 
     public ReactionResponse(CommentReaction entity){
         this.reactionTo = "comment";
         this.reactionId = entity.getId();
         this.reactionType = entity.getReactionType();
         this.reactedEntityId = entity.getComment().getId();
+        this.reactorId = entity.getReactorId();
     }
 
     public ReactionResponse(PostReaction entity){
@@ -24,5 +26,6 @@ public class ReactionResponse {
         this.reactionId = entity.getId();
         this.reactionType = entity.getReactionType();
         this.reactedEntityId = entity.getPost().getId();
+        this.reactorId = entity.getReactorId();
     }
 }
