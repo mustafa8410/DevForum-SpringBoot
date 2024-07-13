@@ -5,15 +5,15 @@ import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.enums.PostCategory;
 import com.devforum.DeveloperForum.enums.PostTag;
 import com.devforum.DeveloperForum.exceptions.PostExceptions.PostNotFoundException;
-import com.devforum.DeveloperForum.exceptions.UserExceptions.IncorrectUserDataException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.PostRepository;
 import com.devforum.DeveloperForum.repositories.UserRepository;
 import com.devforum.DeveloperForum.requests.CreatePostRequest;
-import com.devforum.DeveloperForum.requests.DeletePostRequest;
 import com.devforum.DeveloperForum.requests.UpdatePostRequest;
 import com.devforum.DeveloperForum.responses.PostPreviewResponse;
 import com.devforum.DeveloperForum.responses.PostResponse;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -32,9 +32,11 @@ public class PostService {
     }
 
     public List<PostPreviewResponse> getAllPosts(Optional<Long> userId, Optional<String> sortBy,
-                                                 Optional<List<String>> postCategories, Optional<List<String>> postTags
+                                                 Optional<List<String>> postCategories, Optional<List<String>> postTags,
+                                                 int page, int pageSize
     /* Filtering by post category and post tag to be done later */
     ) {
+        Pageable pageable = PageRequest.of(page, pageSize);
         List<Post> postList;
         Collection<PostCategory> postCategoryCollection = PostCategory.turnStringToCategoryCollection(postCategories);
         Collection<PostTag> postTagCollection = PostTag.turnStringToTagCollection(postTags);
@@ -44,53 +46,57 @@ public class PostService {
                     postList = postRepository.findAll().reversed();
                 else if(!postCategoryCollection.isEmpty() && !postTagCollection.isEmpty()) //only by tag and category
                     postList = postRepository.
-                            findAllByPostCategoryInAndPostTagIn(postCategoryCollection, postTagCollection).reversed();
+                            findAllByPostCategoryInAndPostTagIn(postCategoryCollection, postTagCollection, pageable)
+                            .reversed();
 
                 else if(postTagCollection.isEmpty()) //only by category
-                    postList = postRepository.findAllByPostCategoryIn(postCategoryCollection).reversed();
+                    postList = postRepository.findAllByPostCategoryIn(postCategoryCollection, pageable).reversed();
                 else // tag
-                    postList = postRepository.findAllByPostTagIn(postTagCollection).reversed();
+                    postList = postRepository.findAllByPostTagIn(postTagCollection, pageable).reversed();
 
             }
 
             else{ //with user id
                 if(postCategoryCollection.isEmpty() && postTagCollection.isEmpty())
-                    postList = postRepository.findAllByUserId(userId.get()).reversed();
+                    postList = postRepository.findAllByUserId(userId.get(), pageable).reversed();
                 else if(!postCategoryCollection.isEmpty() && !postTagCollection.isEmpty()) // id, category and tag
                     postList = postRepository.findAllByUserIdAndPostCategoryInAndPostTagIn(userId.get(),
-                            postCategoryCollection, postTagCollection);
+                            postCategoryCollection, postTagCollection, pageable).reversed();
                 else if(postTagCollection.isEmpty()) // only by category and id
-                    postList = postRepository.findAllByUserIdAndPostCategoryIn(userId.get(), postCategoryCollection);
+                    postList = postRepository.findAllByUserIdAndPostCategoryIn(userId.get(), postCategoryCollection,
+                            pageable).reversed();
                 else //tag and id
-                    postList = postRepository.findAllByUserIdAndPostTagIn(userId.get(), postTagCollection);
+                    postList = postRepository.findAllByUserIdAndPostTagIn(userId.get(), postTagCollection, pageable).
+                            reversed();
             }
 
         }
         else if(sortBy.get().equals("popularity")){
             if(userId.isEmpty()){
                 if(postCategoryCollection.isEmpty() && postTagCollection.isEmpty())
-                    postList = postRepository.findAllByOrderByNumberOfReactionsDesc();
+                    postList = postRepository.findAllByOrderByNumberOfReactionsDesc(pageable);
                 else if(!postCategoryCollection.isEmpty() && !postTagCollection.isEmpty()) //category, tag
                     postList = postRepository.findAllByPostCategoryInAndPostTagInOrderByNumberOfReactionsDesc
-                            (postCategoryCollection, postTagCollection);
+                            (postCategoryCollection, postTagCollection, pageable);
                 else if(postTagCollection.isEmpty()) // category
                     postList = postRepository.findAllByPostCategoryInOrderByNumberOfReactionsDesc
-                            (postCategoryCollection);
+                            (postCategoryCollection, pageable);
                 else  //tag
-                    postList = postRepository.findAllByPostTagInOrderByNumberOfReactionsDesc(postTagCollection);
+                    postList = postRepository.findAllByPostTagInOrderByNumberOfReactionsDesc(postTagCollection,
+                            pageable);
             }
             else{
                 if(postCategoryCollection.isEmpty() && postTagCollection.isEmpty()) //id
-                    postList = postRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get());
+                    postList = postRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get(), pageable);
                 else if(!postCategoryCollection.isEmpty() && !postTagCollection.isEmpty()) // id, category, tag
                     postList = postRepository.findAllByUserIdAndPostCategoryInAndPostTagInOrderByNumberOfReactionsDesc
-                            (userId.get(), postCategoryCollection, postTagCollection);
+                            (userId.get(), postCategoryCollection, postTagCollection, pageable);
                 else if(postTagCollection.isEmpty()) // id, category
                     postList = postRepository.findAllByUserIdAndPostCategoryInOrderByNumberOfReactionsDesc
-                            (userId.get(), postCategoryCollection);
+                            (userId.get(), postCategoryCollection, pageable);
                 else //id, tag
                     postList = postRepository.findAllByUserIdAndPostTagInOrderByNumberOfReactionsDesc(userId.get(),
-                            postTagCollection);
+                            postTagCollection, pageable);
             }
         }
         else

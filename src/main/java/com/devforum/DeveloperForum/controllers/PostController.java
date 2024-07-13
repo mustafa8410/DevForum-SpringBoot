@@ -29,8 +29,10 @@ public class PostController {
     public List<PostPreviewResponse> getAllPosts(@RequestParam Optional<Long> userId,
                                                  @RequestParam Optional<String> sortBy,
                                                  @RequestParam Optional<List<String>> postCategories,
-                                                 @RequestParam Optional<List<String>> postTags) {
-        return postService.getAllPosts(userId, sortBy, postCategories, postTags);
+                                                 @RequestParam Optional<List<String>> postTags,
+                                                 @RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "20") int pageSize) {
+        return postService.getAllPosts(userId, sortBy, postCategories, postTags, page, pageSize);
     }
 
     @GetMapping("/{postId}")

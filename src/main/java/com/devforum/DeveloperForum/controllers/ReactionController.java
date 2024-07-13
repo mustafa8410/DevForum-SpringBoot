@@ -37,7 +37,7 @@ public class ReactionController {
         return reactionService.getNumberOfReactionsToEntity(entityId, reactionTo);
     }
 
-    @GetMapping()
+    @GetMapping("/specific")
     @ResponseStatus(HttpStatus.FOUND)
     public ReactionResponse findReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
                                                             @RequestParam String reactionTo){
@@ -70,7 +70,7 @@ public class ReactionController {
         reactionService.deleteReactionById(reactionId, reactionTo);
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/specific")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
                                                   @RequestParam String reactionTo){

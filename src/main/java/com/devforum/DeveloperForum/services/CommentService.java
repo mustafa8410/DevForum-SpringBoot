@@ -13,6 +13,8 @@ import com.devforum.DeveloperForum.repositories.UserRepository;
 import com.devforum.DeveloperForum.requests.CreateCommentRequest;
 import com.devforum.DeveloperForum.requests.UpdateCommentRequest;
 import com.devforum.DeveloperForum.responses.CommentResponse;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -32,7 +34,9 @@ public class CommentService {
         this.userRepository = userRepository;
     }
 
-    public List<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId, Optional<String> sortBy){
+    public List<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId, Optional<String> sortBy,
+                                                int page, int pageSize){
+        Pageable pageable = PageRequest.of(page, pageSize);
         List<Comment> commentList;
         if(postId.isEmpty() && userId.isEmpty())
             throw new InvalidQueryStatementProvidedException
@@ -45,11 +49,11 @@ public class CommentService {
             if(post == null)
                 throw new PostNotFoundException("Post not found.");
             if(sortBy.isEmpty() || sortBy.get().equals("oldest"))
-                commentList = commentRepository.findAllByPostId(postId.get());
+                commentList = commentRepository.findAllByPostId(postId.get(), pageable);
             else if(sortBy.get().equals("most_recent"))
-                commentList = commentRepository.findAllByPostIdOrderByCommentDate(postId.get());
+                commentList = commentRepository.findAllByPostIdOrderByCommentDate(postId.get(), pageable);
             else if(sortBy.get().equals("popularity"))
-                commentList = commentRepository.findAllByPostIdOrderByNumberOfReactions(postId.get());
+                commentList = commentRepository.findAllByPostIdOrderByNumberOfReactions(postId.get(), pageable);
             else
                 throw new IllegalArgumentException();
         }
@@ -58,11 +62,11 @@ public class CommentService {
             if(commenter == null)
                 throw new UserNotFoundException("User not found.");
             if(sortBy.isEmpty() || sortBy.get().equals("oldest"))
-                commentList = commentRepository.findAllByUserId(userId.get());
+                commentList = commentRepository.findAllByUserId(userId.get(), pageable);
             else if(sortBy.get().equals("most_recent"))
-                commentList = commentRepository.findAllByUserIdOrderByCommentDateDesc(userId.get());
+                commentList = commentRepository.findAllByUserIdOrderByCommentDateDesc(userId.get(), pageable);
             else if(sortBy.get().equals("popularity"))
-                commentList = commentRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get());
+                commentList = commentRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get(), pageable);
             else
                 throw new IllegalArgumentException();
         }

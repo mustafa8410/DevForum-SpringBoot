@@ -25,8 +25,10 @@ public class CommentController {
     @ResponseStatus(HttpStatus.FOUND)
     public List<CommentResponse> getAllComments(@RequestParam Optional<Long> postId,
                                                 @RequestParam Optional<Long> userId,
-                                                @RequestParam Optional<String> sortBy) {
-        return commentService.getAllComments(postId, userId, sortBy);
+                                                @RequestParam Optional<String> sortBy,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "20") int pageSize) {
+        return commentService.getAllComments(postId, userId, sortBy, page, pageSize);
     }
 
     @GetMapping("/{commentId}")
