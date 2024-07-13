@@ -47,10 +47,12 @@ public class PostService {
                     postList = postRepository.findAllByOrderByPostDateDesc(pageable);
                 else if(!postCategoryCollection.isEmpty() && !postTagCollection.isEmpty()) //only by tag and category
                     postList = postRepository.
-                            findAllByPostCategoryInAndPostTagInOrderByPostDateDesc(postCategoryCollection, postTagCollection, pageable);
+                            findAllByPostCategoryInAndPostTagInOrderByPostDateDesc(postCategoryCollection,
+                                    postTagCollection, pageable);
 
                 else if(postTagCollection.isEmpty()) //only by category
-                    postList = postRepository.findAllByPostCategoryInOrderByPostDateDesc(postCategoryCollection, pageable);
+                    postList = postRepository.findAllByPostCategoryInOrderByPostDateDesc(postCategoryCollection,
+                            pageable);
                 else // tag
                     postList = postRepository.findAllByPostTagInOrderByPostDateDesc(postTagCollection, pageable);
 
@@ -60,13 +62,15 @@ public class PostService {
                 if(postCategoryCollection.isEmpty() && postTagCollection.isEmpty())
                     postList = postRepository.findAllByUserIdOrderByPostDateDesc(userId.get(), pageable);
                 else if(!postCategoryCollection.isEmpty() && !postTagCollection.isEmpty()) // id, category and tag
-                    postList = postRepository.findAllByUserIdAndPostCategoryInAndPostTagInOrderByPostDateDesc(userId.get(),
-                            postCategoryCollection, postTagCollection, pageable);
+                    postList = postRepository.
+                            findAllByUserIdAndPostCategoryInAndPostTagInOrderByPostDateDesc(userId.get(),
+                                    postCategoryCollection, postTagCollection, pageable);
                 else if(postTagCollection.isEmpty()) // only by category and id
-                    postList = postRepository.findAllByUserIdAndPostCategoryInOrderByPostDateDesc(userId.get(), postCategoryCollection,
-                            pageable);
+                    postList = postRepository.findAllByUserIdAndPostCategoryInOrderByPostDateDesc(userId.get(),
+                            postCategoryCollection, pageable);
                 else //tag and id
-                    postList = postRepository.findAllByUserIdAndPostTagInOrderByPostDateDesc(userId.get(), postTagCollection, pageable);
+                    postList = postRepository.findAllByUserIdAndPostTagInOrderByPostDateDesc(userId.get(),
+                            postTagCollection, pageable);
             }
 
         }

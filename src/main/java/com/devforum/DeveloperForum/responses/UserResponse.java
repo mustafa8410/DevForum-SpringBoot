@@ -16,6 +16,7 @@ public class UserResponse {
     ReputationRank reputationRank;
     HelpfulRank helpfulRank;
     Long interactionCount;
+    Long helpfulCount;
 
     public UserResponse(User entity) {
         this.id = entity.getId();
@@ -25,5 +26,6 @@ public class UserResponse {
         this.reputationRank = entity.getReputationRank();
         this.helpfulRank = entity.getHelpfulRank();
         this.interactionCount = entity.getInteractionCount();
+        this.helpfulCount = entity.getHelpfulCount();
     }
 }

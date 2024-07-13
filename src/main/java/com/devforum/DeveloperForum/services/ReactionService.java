@@ -134,7 +134,8 @@ public class ReactionService {
             Comment comment = commentRepository.findById(entityId).orElse(null);
             if(comment == null)
                 throw new CommentNotFoundException("No comment found with given id.");
-            CommentReaction reaction = commentReactionRepository.findByReactorIdAndComment(userId, comment).orElse(null);
+            CommentReaction reaction = commentReactionRepository.findByReactorIdAndComment(userId, comment).
+                    orElse(null);
             if(reaction == null)
                 throw new ReactionNotFoundException("No reaction found.");
             return new ReactionResponse(reaction);
