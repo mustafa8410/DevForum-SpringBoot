@@ -4,6 +4,7 @@ import com.devforum.DeveloperForum.entities.Comment;
 import com.devforum.DeveloperForum.entities.Post;
 import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.exceptions.CommentExceptions.CommentNotFoundException;
+import com.devforum.DeveloperForum.exceptions.CommentExceptions.InvalidQueryStatementProvidedException;
 import com.devforum.DeveloperForum.exceptions.PostExceptions.PostNotFoundException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.CommentRepository;
@@ -31,16 +32,42 @@ public class CommentService {
         this.userRepository = userRepository;
     }
 
-    public List<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId) {
+    public List<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId, Optional<String> sortBy){
         List<Comment> commentList;
         if(postId.isEmpty() && userId.isEmpty())
-            commentList = commentRepository.findAll();
+            throw new InvalidQueryStatementProvidedException
+                    ("One query statement must be provided for this method to execute.");
         else if(postId.isPresent() && userId.isPresent())
-            commentList = commentRepository.findAllByUserIdAndPostId(userId.get(), postId.get());
-        else if(postId.isPresent())
-            commentList = commentRepository.findAllByPostId(postId.get());
-        else
-            commentList = commentRepository.findAllByUserId(userId.get());
+            throw new InvalidQueryStatementProvidedException
+                    ("Only post id or user id must be provided in the query statement.");
+        else if(postId.isPresent()){
+            Post post = postRepository.findById(postId.get()).orElse(null);
+            if(post == null)
+                throw new PostNotFoundException("Post not found.");
+            if(sortBy.isEmpty() || sortBy.get().equals("oldest"))
+                commentList = commentRepository.findAllByPostId(postId.get());
+            else if(sortBy.get().equals("most_recent"))
+                commentList = commentRepository.findAllByPostIdOrderByCommentDate(postId.get());
+            else if(sortBy.get().equals("popularity"))
+                commentList = commentRepository.findAllByPostIdOrderByNumberOfReactions(postId.get());
+            else
+                throw new IllegalArgumentException();
+        }
+        else{
+            User commenter = userRepository.findById(userId.get()).orElse(null);
+            if(commenter == null)
+                throw new UserNotFoundException("User not found.");
+            if(sortBy.isEmpty() || sortBy.get().equals("oldest"))
+                commentList = commentRepository.findAllByUserId(userId.get());
+            else if(sortBy.get().equals("most_recent"))
+                commentList = commentRepository.findAllByUserIdOrderByCommentDateDesc(userId.get());
+            else if(sortBy.get().equals("popularity"))
+                commentList = commentRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get());
+            else
+                throw new IllegalArgumentException();
+        }
+        if(commentList.isEmpty())
+            throw new CommentNotFoundException("No comment found.");
         return commentList.stream().map(CommentResponse::new).collect(Collectors.toList());
     }
 

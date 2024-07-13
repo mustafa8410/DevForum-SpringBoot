@@ -24,11 +24,9 @@ public class CommentController {
     @GetMapping()
     @ResponseStatus(HttpStatus.FOUND)
     public List<CommentResponse> getAllComments(@RequestParam Optional<Long> postId,
-                                                @RequestParam Optional<Long> userId) {
-       List<CommentResponse> commentList = commentService.getAllComments(postId, userId);
-       if(commentList.isEmpty())
-           throw new CommentNotFoundException("No comment found.");
-       return commentList;
+                                                @RequestParam Optional<Long> userId,
+                                                @RequestParam Optional<String> sortBy) {
+        return commentService.getAllComments(postId, userId, sortBy);
     }
 
     @GetMapping("/{commentId}")

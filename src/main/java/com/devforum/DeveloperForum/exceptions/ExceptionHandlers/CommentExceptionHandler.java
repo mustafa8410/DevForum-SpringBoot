@@ -1,6 +1,7 @@
 package com.devforum.DeveloperForum.exceptions.ExceptionHandlers;
 
 import com.devforum.DeveloperForum.exceptions.CommentExceptions.CommentNotFoundException;
+import com.devforum.DeveloperForum.exceptions.CommentExceptions.InvalidQueryStatementProvidedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,4 +12,8 @@ public class CommentExceptionHandler {
     @ExceptionHandler(CommentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     private void handleCommentNotFound(){}
+
+    @ExceptionHandler(InvalidQueryStatementProvidedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    private void handleNoQueryStatementsProvided(){}
 }
