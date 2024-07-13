@@ -12,6 +12,7 @@ public class CommentResponse {
     Long userId;
     String text;
     Date commentDate;
+    Long numberOfReactions;
 
     public CommentResponse(Comment entity){
         this.id = entity.getId();
@@ -19,5 +20,6 @@ public class CommentResponse {
         this.userId = entity.getUser().getId();
         this.text = entity.getText();
         this.commentDate = entity.getCommentDate();
+        this.numberOfReactions = entity.getNumberOfReactions();
     }
 }

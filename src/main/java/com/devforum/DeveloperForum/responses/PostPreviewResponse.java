@@ -15,6 +15,7 @@ public class PostPreviewResponse {
     PostCategory postCategory;
     PostTag postTag;
     Date postDate;
+    Long numberOfReactions;
 
     public PostPreviewResponse(Post entity){
         this.id = entity.getId();
@@ -23,6 +24,7 @@ public class PostPreviewResponse {
         this.postCategory = entity.getPostCategory();
         this.postTag = entity.getPostTag();
         this.postDate = entity.getPostDate();
+        this.numberOfReactions = entity.getNumberOfReactions();
     }
 }
 

@@ -16,6 +16,7 @@ public class PostResponse {
     PostCategory postCategory;
     PostTag postTag;
     Date postDate;
+    Long numberOfReactions;
 
     public PostResponse(Post entity){
         this.id = entity.getId();
@@ -25,5 +26,6 @@ public class PostResponse {
         this.postCategory = entity.getPostCategory();
         this.postTag = entity.getPostTag();
         this.postDate = entity.getPostDate();
+        this.numberOfReactions = entity.getNumberOfReactions();
     }
 }

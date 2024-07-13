@@ -51,9 +51,9 @@ public class CommentService {
             if(sortBy.isEmpty() || sortBy.get().equals("oldest"))
                 commentList = commentRepository.findAllByPostId(postId.get(), pageable);
             else if(sortBy.get().equals("most_recent"))
-                commentList = commentRepository.findAllByPostIdOrderByCommentDate(postId.get(), pageable);
+                commentList = commentRepository.findAllByPostIdOrderByCommentDateDesc(postId.get(), pageable);
             else if(sortBy.get().equals("popularity"))
-                commentList = commentRepository.findAllByPostIdOrderByNumberOfReactions(postId.get(), pageable);
+                commentList = commentRepository.findAllByPostIdOrderByNumberOfReactionsDescCommentDateDesc(postId.get(), pageable);
             else
                 throw new IllegalArgumentException();
         }
@@ -66,7 +66,7 @@ public class CommentService {
             else if(sortBy.get().equals("most_recent"))
                 commentList = commentRepository.findAllByUserIdOrderByCommentDateDesc(userId.get(), pageable);
             else if(sortBy.get().equals("popularity"))
-                commentList = commentRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get(), pageable);
+                commentList = commentRepository.findAllByUserIdOrderByNumberOfReactionsDescCommentDateDesc(userId.get(), pageable);
             else
                 throw new IllegalArgumentException();
         }

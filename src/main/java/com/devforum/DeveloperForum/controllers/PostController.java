@@ -8,6 +8,7 @@ import com.devforum.DeveloperForum.requests.UpdatePostRequest;
 import com.devforum.DeveloperForum.responses.PostPreviewResponse;
 import com.devforum.DeveloperForum.responses.PostResponse;
 import com.devforum.DeveloperForum.services.PostService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +27,13 @@ public class PostController {
     @GetMapping()
     @ResponseStatus(HttpStatus.FOUND)
     // shows only the previews of the posts, when clicked then the front-end should request the specific post by id
-    public List<PostPreviewResponse> getAllPosts(@RequestParam Optional<Long> userId,
+    public Page<PostPreviewResponse> getAllPosts(@RequestParam Optional<Long> userId,
                                                  @RequestParam Optional<String> sortBy,
-                                                 @RequestParam Optional<List<String>> postCategories,
-                                                 @RequestParam Optional<List<String>> postTags,
+                                                 @RequestParam Optional<List<String>> category,
+                                                 @RequestParam Optional<List<String>> tag,
                                                  @RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "20") int pageSize) {
-        return postService.getAllPosts(userId, sortBy, postCategories, postTags, page, pageSize);
+        return postService.getAllPosts(userId, sortBy, category, tag, page, pageSize);
     }
 
     @GetMapping("/{postId}")
