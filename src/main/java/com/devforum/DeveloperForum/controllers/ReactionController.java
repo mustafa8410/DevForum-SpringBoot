@@ -56,12 +56,25 @@ public class ReactionController {
         return reactionService.updateReactionById(reactionId,newReaction);
     }
 
+    @PutMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public ReactionResponse updateReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
+                                                              @RequestParam String reactionTo,
+                                                              UpdateReactionRequest updateReactionRequest){
+        return reactionService.updateReactionByUserIdAndEntityId(userId, entityId, reactionTo, updateReactionRequest);
+    }
 
-
-    @DeleteMapping("/reactionId")
+    @DeleteMapping("/{reactionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteReactionById(@PathVariable Long reactionId, @RequestParam String reactionTo){
         reactionService.deleteReactionById(reactionId, reactionTo);
+    }
+
+    @DeleteMapping()
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
+                                                  @RequestParam String reactionTo){
+        reactionService.deleteReactionByUserIdAndEntityId(userId, entityId, reactionTo);
     }
 
 

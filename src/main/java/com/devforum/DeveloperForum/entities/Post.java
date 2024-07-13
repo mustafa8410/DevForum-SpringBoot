@@ -38,5 +38,7 @@ public class Post {
     @Temporal(TemporalType.TIMESTAMP)
     Date postDate;
 
+    Long numberOfReactions;
+
 
 }

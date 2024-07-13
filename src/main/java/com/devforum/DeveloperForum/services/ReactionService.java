@@ -1,7 +1,6 @@
 package com.devforum.DeveloperForum.services;
 
 import com.devforum.DeveloperForum.entities.*;
-import com.devforum.DeveloperForum.enums.PostCategory;
 import com.devforum.DeveloperForum.enums.PostTag;
 import com.devforum.DeveloperForum.enums.ReactionType;
 import com.devforum.DeveloperForum.exceptions.CommentExceptions.CommentNotFoundException;
@@ -100,7 +99,7 @@ public class ReactionService {
             if(post == null)
                 throw new PostNotFoundException("No post found with given id.");
             for (ReactionType reactionType : ReactionType.values()) {
-                long count = postReactionRepository.findAllByPostIdAndReactionType(entityId, reactionType).size();
+                long count = postReactionRepository.countByPostIdAndReactionType(entityId, reactionType);
                 reactionNumbers.add(count);
             }
             return reactionNumbers;
@@ -110,7 +109,7 @@ public class ReactionService {
             if(comment == null)
                 throw new CommentNotFoundException("No comment found with given id.");
             for (ReactionType reactionType : ReactionType.values()) {
-                long count = commentReactionRepository.findAllByCommentIdAndReactionType(entityId, reactionType).size();
+                Long count = commentReactionRepository.countByCommentIdAndReactionType(entityId, reactionType);
                 reactionNumbers.add(count);
             }
             return reactionNumbers;
@@ -140,9 +139,7 @@ public class ReactionService {
                 throw new ReactionNotFoundException("No reaction found.");
             return new ReactionResponse(reaction);
         }
-        else{
-            throw new IllegalArgumentException();
-        }
+        throw new IllegalArgumentException();
     }
 
     public ReactionResponse createReaction(CreateReactionRequest createReactionRequest) {
@@ -161,6 +158,7 @@ public class ReactionService {
             reaction.setReactionType(reactionType);
             reaction.setPost(post.get());
             reaction.setReactorId(createReactionRequest.getReactorId());
+            post.get().setNumberOfReactions(post.get().getNumberOfReactions() + 1);
             if(reactionType.equals(ReactionType.DISAGREE))
                 poster.setInteractionCount(poster.getInteractionCount() - 1);
             else
@@ -181,6 +179,7 @@ public class ReactionService {
             reaction.setReactionType(reactionType);
             reaction.setComment(comment.get());
             reaction.setReactorId(createReactionRequest.getReactorId());
+            comment.get().setNumberOfReactions(comment.get().getNumberOfReactions() + 1);
             if(reactionType.equals(ReactionType.DISAGREE))
                 poster.setInteractionCount(poster.getInteractionCount() - 1);
             else
@@ -247,25 +246,85 @@ public class ReactionService {
         throw new ReactionNotFoundException("No such reaction found to update.");
     }
 
-
+    public ReactionResponse updateReactionByUserIdAndEntityId(Long userId, Long entityId, String reactionTo,
+                                                              UpdateReactionRequest updateReactionRequest) {
+        User reactor = userRepository.findById(userId).orElse(null);
+        if(reactor == null)
+            throw new UserNotFoundException("No user found with given id.");
+        if(reactionTo.equals("post")){
+            Post post = postRepository.findById(entityId).orElse(null);
+            if(post == null)
+                throw new PostNotFoundException("No post found with given id.");
+            PostReaction reaction = postReactionRepository.findByReactorIdAndPost(userId, post).orElse(null);
+            if(reaction == null)
+                throw new ReactionNotFoundException("Post Reaction not found.");
+            if(reaction.getReactionType().equals(ReactionType.valueOf(updateReactionRequest.getNewReactionType())))
+                throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
+                        "This request shouldn't have been sent.");
+            reaction.setReactionType(ReactionType.valueOf(updateReactionRequest.getNewReactionType()));
+            return new ReactionResponse(postReactionRepository.save(reaction));
+        }
+        else if(reactionTo.equals("comment")){
+            Comment comment = commentRepository.findById(entityId).orElse(null);
+            if(comment == null)
+                throw new CommentNotFoundException("No comment found with given id.");
+            CommentReaction reaction = commentReactionRepository.findByReactorIdAndComment(userId, comment)
+                    .orElse(null);
+            if(reaction == null)
+                throw new ReactionNotFoundException("Comment Reaction not found.");
+            if(reaction.getReactionType().equals(ReactionType.valueOf(updateReactionRequest.getNewReactionType())))
+                throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
+                        "This request shouldn't have been sent.");
+            reaction.setReactionType(ReactionType.valueOf(updateReactionRequest.getNewReactionType()));
+            return new ReactionResponse(commentReactionRepository.save(reaction));
+        }
+        throw new IllegalArgumentException();
+    }
 
     public void deleteReactionById(Long reactionId, String reactionTo) {
         if(reactionTo.equals("post")){
             PostReaction toDelete = postReactionRepository.findById(reactionId).orElse(null);
             if(toDelete == null)
                 throw new ReactionNotFoundException("Post reaction with given information not found.");
+            toDelete.getPost().setNumberOfReactions(toDelete.getPost().getNumberOfReactions() - 1);
             postReactionRepository.delete(toDelete);
         }
         else if(reactionTo.equals("comment")){
             CommentReaction toDelete = commentReactionRepository.findById(reactionId).orElse(null);
             if(toDelete == null)
                 throw new ReactionNotFoundException("Comment reaction with given information not found.");
+            toDelete.getComment().setNumberOfReactions(toDelete.getComment().getNumberOfReactions() - 1);
             commentReactionRepository.delete(toDelete);
-            }
-        else
-            throw new IllegalArgumentException();
+        }
+        throw new IllegalArgumentException();
     }
 
 
-
+    public void deleteReactionByUserIdAndEntityId(Long userId, Long entityId, String reactionTo) {
+        User reactor = userRepository.findById(userId).orElse(null);
+        if(reactor == null)
+            throw new UserNotFoundException("No reactor found with given user id.");
+        if(reactionTo.equals("post")){
+            Post post = postRepository.findById(entityId).orElse(null);
+            if(post == null)
+                throw new PostNotFoundException("Post not found.");
+            PostReaction toDelete = postReactionRepository.findByReactorIdAndPost(userId, post).orElse(null);
+            if(toDelete == null)
+                throw new ReactionNotFoundException("Specified reaction to the post not found.");
+            postReactionRepository.delete(toDelete);
+            post.setNumberOfReactions(post.getNumberOfReactions() - 1);
+        }
+        else if(reactionTo.equals("comment")){
+            Comment comment = commentRepository.findById(entityId).orElse(null);
+            if(comment == null)
+                throw new CommentNotFoundException("Comment not found.");
+            CommentReaction toDelete = commentReactionRepository.findByReactorIdAndComment(userId, comment)
+                    .orElse(null);
+            if(toDelete == null)
+                throw new ReactionNotFoundException("Specified reaction to the comment not found.");
+            commentReactionRepository.delete(toDelete);
+            comment.setNumberOfReactions(comment.getNumberOfReactions() - 1);
+        }
+            throw new IllegalArgumentException();
+    }
 }

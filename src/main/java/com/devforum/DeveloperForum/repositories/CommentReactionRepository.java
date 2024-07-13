@@ -17,4 +17,6 @@ public interface CommentReactionRepository extends JpaRepository<CommentReaction
     public List<CommentReaction> findAllByCommentIdAndReactionType(Long commentId, ReactionType reactionType);
 
     public Optional<CommentReaction> findByReactorIdAndComment(Long reactorId, Comment comment);
+
+    public Long countByCommentIdAndReactionType(Long commentId, ReactionType reactionType);
 }

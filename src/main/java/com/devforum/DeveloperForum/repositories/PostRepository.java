@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByUserId(Long userId);
+    List<Post> findAllByOrderByNumberOfReactionsDesc();
+    List<Post> findAllByUserIdOrderByNumberOfReactionsDesc(Long userId);
+    List<Post> findAllByOrderByPostDateDesc();
+    List<Post> findAllByUserIdOrderByPostDateDesc(Long userId);
 }

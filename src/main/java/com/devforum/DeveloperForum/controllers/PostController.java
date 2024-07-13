@@ -5,6 +5,7 @@ import com.devforum.DeveloperForum.exceptions.PostExceptions.PostNotFoundExcepti
 import com.devforum.DeveloperForum.requests.CreatePostRequest;
 import com.devforum.DeveloperForum.requests.DeletePostRequest;
 import com.devforum.DeveloperForum.requests.UpdatePostRequest;
+import com.devforum.DeveloperForum.responses.PostPreviewResponse;
 import com.devforum.DeveloperForum.responses.PostResponse;
 import com.devforum.DeveloperForum.services.PostService;
 import org.springframework.http.HttpStatus;
@@ -24,12 +25,12 @@ public class PostController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.FOUND)
-    public List<PostResponse> getAllPosts(@RequestParam Optional<Long> userId,
-                                          @RequestParam Optional<Boolean> mostReaction) {
-        List<PostResponse> postList = postService.getAllPosts(userId, mostReaction);
-        if(postList.isEmpty())
-            throw new PostNotFoundException("There are no posts in the database.");
-        return postList;
+    // shows only the previews of the posts, when clicked then the front-end should request the specific post by id
+    public List<PostPreviewResponse> getAllPosts(@RequestParam Optional<Long> userId,
+                                                 @RequestParam Optional<String> sortBy,
+                                                 @RequestParam Optional<List<String>> postCategories,
+                                                 @RequestParam Optional<List<String>> postTags) {
+        return postService.getAllPosts(userId, sortBy, postCategories, postTags);
     }
 
     @GetMapping("/{postId}")

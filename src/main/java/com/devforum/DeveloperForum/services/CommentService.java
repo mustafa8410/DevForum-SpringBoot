@@ -63,6 +63,7 @@ public class CommentService {
         newComment.setUser(user);
         newComment.setText(createCommentRequest.getText());
         newComment.setCommentDate(new Date());
+        newComment.setNumberOfReactions(0L);
         return commentRepository.save(newComment);
     }
 

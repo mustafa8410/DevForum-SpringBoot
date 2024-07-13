@@ -30,4 +30,6 @@ public class Comment {
     @Temporal(TemporalType.TIMESTAMP)
     Date commentDate;
 
+    Long numberOfReactions;
+
 }

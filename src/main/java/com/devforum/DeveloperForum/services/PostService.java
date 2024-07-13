@@ -12,6 +12,7 @@ import com.devforum.DeveloperForum.repositories.UserRepository;
 import com.devforum.DeveloperForum.requests.CreatePostRequest;
 import com.devforum.DeveloperForum.requests.DeletePostRequest;
 import com.devforum.DeveloperForum.requests.UpdatePostRequest;
+import com.devforum.DeveloperForum.responses.PostPreviewResponse;
 import com.devforum.DeveloperForum.responses.PostResponse;
 import org.springframework.stereotype.Service;
 
@@ -33,15 +34,34 @@ public class PostService {
         this.userRepository = userRepository;
     }
 
-    public List<PostResponse> getAllPosts(Optional<Long> userId, Optional<Boolean> mostReaction) {
-        List<Post> postList = new ArrayList<>();
-        if (userId.isEmpty())
-            postList = postRepository.findAll();
+    public List<PostPreviewResponse> getAllPosts(Optional<Long> userId, Optional<String> sortBy,
+                                                 Optional<List<String>> postCategories, Optional<List<String>> postTags
+    /* Filtering by post category and post tag to be done later */
+    ) {
+        List<Post> postList;
+        if(sortBy.isEmpty()){
+            if (userId.isEmpty())
+                postList = postRepository.findAll();
+            else
+                postList = postRepository.findAllByUserId(userId.get());
+        }
+        else if(sortBy.get().equals("popularity")){
+            if(userId.isEmpty())
+                postList = postRepository.findAllByOrderByNumberOfReactionsDesc();
+            else
+                postList = postRepository.findAllByUserIdOrderByNumberOfReactionsDesc(userId.get());
+        }
+        else if(sortBy.get().equals("most_recent")){
+            if(userId.isEmpty())
+                postList = postRepository.findAllByOrderByPostDateDesc();
+            else
+                postList = postRepository.findAllByUserIdOrderByPostDateDesc(userId.get());
+        }
         else
-            postList = postRepository.findAllByUserId(userId.get());
+            throw new IllegalArgumentException();
         if (postList.isEmpty())
             throw new PostNotFoundException("No post found.");
-        return postList.stream().map(PostResponse::new).collect(Collectors.toList());
+        return postList.stream().map(PostPreviewResponse::new).collect(Collectors.toList());
     }
 
     public PostResponse findPostById(Long postId) {
@@ -65,6 +85,7 @@ public class PostService {
         newPost.setText(postRequest.getText());
         newPost.setTitle(postRequest.getTitle());
         newPost.setUser(user);
+        newPost.setNumberOfReactions(0L);
         return postRepository.save(newPost);
     }
 
