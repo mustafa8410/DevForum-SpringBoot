@@ -17,7 +17,7 @@ public class CommentReaction {
     @Enumerated(EnumType.STRING)
     ReactionType reactionType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     Comment comment;

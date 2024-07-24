@@ -17,7 +17,7 @@ public class PostReaction {
     @Enumerated(EnumType.STRING)
     ReactionType reactionType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     Post post;

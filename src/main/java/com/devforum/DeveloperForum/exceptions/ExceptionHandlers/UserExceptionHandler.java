@@ -5,6 +5,7 @@ import com.devforum.DeveloperForum.exceptions.UserExceptions.IncorrectUserDataEx
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UsernameAlreadyExistsException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,18 +13,22 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class UserExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    private void handleUserNotFound(){}
+    private ResponseEntity<String> handleUserNotFound(UserNotFoundException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    private void handleUsernameAlreadyExists(){}
+    private ResponseEntity<String> handleUsernameAlreadyExists(UsernameAlreadyExistsException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    private void handleEmailAlreadyExists(){}
+    private ResponseEntity<String> handleEmailAlreadyExists(EmailAlreadyExistsException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(IncorrectUserDataException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    private void handleIncorrectUserData(){}
+    private ResponseEntity<String> handleIncorrectUserData(IncorrectUserDataException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
 }

@@ -7,7 +7,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -53,8 +52,8 @@ public class JwtTokenProvider {
         return getPayload(token).get("cred").toString();
     }
 
-    public boolean isTokenNotExpired(String token){
-        return getPayload(token).getExpiration().after(Date.from(Instant.now()));
+    public boolean isTokenExpired(String token){
+        return getPayload(token).getExpiration().before(Date.from(Instant.now()));
     }
 
     public boolean verifyUserWithToken(Optional<User> user, String token){

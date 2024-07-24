@@ -13,6 +13,7 @@ import com.devforum.DeveloperForum.requests.CreateUserRequest;
 import com.devforum.DeveloperForum.requests.DeleteUserRequest;
 import com.devforum.DeveloperForum.requests.UpdateUserRequest;
 import com.devforum.DeveloperForum.responses.UserResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,8 +26,11 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserResponse> getAllUsers() {
@@ -51,7 +55,7 @@ public class UserService {
         newUser.setEmail(userRequest.getEmail());
         newUser.setName(userRequest.getName());
         newUser.setUsername(userRequest.getUsername());
-        newUser.setPassword(userRequest.getPassword());
+        newUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         newUser.setRegisterDate(LocalDate.now());
         newUser.setHelpfulRank(null);
         newUser.setReputationRank(ReputationRank.ROOKIE);
@@ -89,7 +93,7 @@ public class UserService {
         }
 
         if(!userRequest.getPassword().equals(user.getPassword())){
-            user.setPassword(userRequest.getPassword());
+            user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
 
         if(!userRequest.getName().equals(user.getName())){
