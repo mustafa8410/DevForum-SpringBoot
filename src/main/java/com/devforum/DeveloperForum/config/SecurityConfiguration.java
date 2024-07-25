@@ -33,11 +33,14 @@ public class SecurityConfiguration {
     }
 
 
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
                     registry.requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .requestMatchers("/auth/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::disable)

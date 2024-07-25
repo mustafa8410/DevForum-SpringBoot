@@ -1,7 +1,6 @@
 package com.devforum.DeveloperForum.services;
 
 import com.devforum.DeveloperForum.entities.User;
-import com.devforum.DeveloperForum.enums.HelpfulRank;
 import com.devforum.DeveloperForum.enums.ReputationRank;
 import com.devforum.DeveloperForum.exceptions.GlobalExceptions.NoUpdateProvidedException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.EmailAlreadyExistsException;
@@ -13,6 +12,8 @@ import com.devforum.DeveloperForum.requests.CreateUserRequest;
 import com.devforum.DeveloperForum.requests.DeleteUserRequest;
 import com.devforum.DeveloperForum.requests.UpdateUserRequest;
 import com.devforum.DeveloperForum.responses.UserResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,9 +29,13 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final UserDetailsServiceImplementation userDetailsService;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       UserDetailsServiceImplementation userDetailsService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
     }
 
     public List<UserResponse> getAllUsers() {
@@ -67,15 +72,15 @@ public class UserService {
 
     public User updateUserById(Long userId, UpdateUserRequest userRequest) {
         User user = userRepository.findById(userId).orElse(null);
-
         if(user == null){
             throw new UserNotFoundException("The user that you're trying to update doesn't exist.");
         }
 
-        if(!user.getPassword().equals(userRequest.getOldPassword())){
-            throw new IncorrectUserDataException("Current password data provided doesn't match.");
-        }
-        if(userRequest.equals(new UpdateUserRequest(user)))
+        userDetailsService.verifyUser(user);
+
+
+        if(userRequest.allFieldsEqual(user, userRequest) && !BCrypt
+                .checkpw(userRequest.getPassword(), user.getPassword()))
             throw new NoUpdateProvidedException("No information about the user is requested to be updated.");
 
         if(!userRequest.getUsername().equals(user.getUsername())){
@@ -92,7 +97,7 @@ public class UserService {
             user.setEmail(userRequest.getEmail());
         }
 
-        if(!userRequest.getPassword().equals(user.getPassword())){
+        if(!BCrypt.checkpw(userRequest.getPassword(), user.getPassword())){
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
 
@@ -107,6 +112,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElse(null);
         if(user == null)
             throw new UserNotFoundException("There's no user with given id to delete.");
+        userDetailsService.verifyUser(user);
         if(!user.getPassword().equals(deleteUserRequest.getPassword()))
             throw new IncorrectUserDataException("Password provided is incorrect.");
         if(!user.getEmail().equals(deleteUserRequest.getEmail()))

@@ -6,16 +6,14 @@ import lombok.Data;
 @Data
 public class UpdateUserRequest {
     String email;
-    String name;
     String username;
-    String oldPassword;
+    String name;
     String password;
 
     public UpdateUserRequest(User entity){
         this.email = entity.getEmail();
         this.name = entity.getName();
         this.username = entity.getUsername();
-        this.oldPassword = entity.getPassword();
         this.password = entity.getPassword();
     }
 
@@ -24,5 +22,10 @@ public class UpdateUserRequest {
         this.name = name;
         this.username = username;
         this.password = password;
+    }
+
+    public boolean allFieldsEqual(User entity, UpdateUserRequest request){
+        return entity.getUsername().equals(request.getUsername()) && entity.getEmail().equals(request.getEmail()) &&
+                entity.getName().equals(request.getName());
     }
 }

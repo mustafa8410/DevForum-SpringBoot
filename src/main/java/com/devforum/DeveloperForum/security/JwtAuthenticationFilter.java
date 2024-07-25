@@ -31,21 +31,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String jwtToken = extractJwtToken(request);
-        String username = jwtTokenProvider.extractUsername(jwtToken);
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = userDetailsServiceImplementation.loadUserByUsername(username);
-            if(userDetails != null && !jwtTokenProvider.isTokenExpired(jwtToken)){
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(username,
-                                userDetails.getPassword(), userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().
-                        buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        if(jwtToken != null){
+            String username = jwtTokenProvider.extractUsername(jwtToken);
+            if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+                UserDetails userDetails = userDetailsServiceImplementation.loadUserByUsername(username);
+                if(userDetails != null && !jwtTokenProvider.isTokenExpired(jwtToken)){
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                            new UsernamePasswordAuthenticationToken(username,
+                                    userDetails.getPassword(), userDetails.getAuthorities());
+                    usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().
+                            buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                }
             }
         }
+
         filterChain.doFilter(request,response);
-
-
 
     }
 

@@ -1,7 +1,5 @@
 package com.devforum.DeveloperForum.security;
 
-import com.devforum.DeveloperForum.entities.User;
-import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -56,12 +54,12 @@ public class JwtTokenProvider {
         return getPayload(token).getExpiration().before(Date.from(Instant.now()));
     }
 
-    public boolean verifyUserWithToken(Optional<User> user, String token){
-        if(user.isEmpty())
-            throw new UserNotFoundException("User doesn't exist.");
-        Claims claims = getPayload(token);
-        return (user.get().getUsername().equals(claims.getSubject()) &&
-                user.get().getPassword().equals(claims.get("cred").toString()));
-    }
+//    public boolean verifyUserWithToken(Optional<User> user, String token){
+//        if(user.isEmpty())
+//            throw new UserNotFoundException("User doesn't exist.");
+//        Claims claims = getPayload(token);
+//        return (user.get().getUsername().equals(claims.getSubject()) &&
+//                user.get().getPassword().equals(claims.get("cred").toString()));
+//    }
 
 }

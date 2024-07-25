@@ -15,10 +15,10 @@ import com.devforum.DeveloperForum.responses.PostResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -27,9 +27,13 @@ public class PostService {
 
     private final UserRepository userRepository;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    private final UserDetailsServiceImplementation userDetailsService;
+
+    public PostService(PostRepository postRepository, UserRepository userRepository,
+                       UserDetailsServiceImplementation userDetailsService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.userDetailsService = userDetailsService;
     }
 
     public Page<PostPreviewResponse> getAllPosts(Optional<Long> userId, Optional<String> sortBy,
@@ -124,6 +128,7 @@ public class PostService {
         User user = userRepository.findById(postRequest.getUserId()).orElse(null);
         if(user == null)
             throw new UserNotFoundException("There are no users with given id.");
+        userDetailsService.verifyUser(user);
         PostCategory postCategory = PostCategory.valueOf(postRequest.getPostCategory().toUpperCase());
         PostTag postTag = PostTag.valueOf(postRequest.getPostTag().toUpperCase());
         Post newPost = new Post();
@@ -141,6 +146,7 @@ public class PostService {
         Post post = postRepository.findById(postId).orElse(null);
         if(post == null)
             throw new PostNotFoundException("There are no posts with given ID.");
+        userDetailsService.verifyUser(post.getUser());
         PostCategory postCategory = PostCategory.valueOf(updatePostRequest.getPostCategory().toUpperCase());
         PostTag postTag = PostTag.valueOf(updatePostRequest.getPostTag().toUpperCase());
         post.setText(updatePostRequest.getText());
@@ -154,6 +160,7 @@ public class PostService {
         Post toDelete = postRepository.findById(postId).orElse(null);
         if(toDelete == null)
             throw new PostNotFoundException("This post doesn't exist already.");
+        userDetailsService.verifyUser(toDelete.getUser());
         postRepository.delete(toDelete);
     }
 }

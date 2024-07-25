@@ -15,6 +15,7 @@ import com.devforum.DeveloperForum.requests.UpdateCommentRequest;
 import com.devforum.DeveloperForum.responses.CommentResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -28,10 +29,15 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
+    private final UserDetailsServiceImplementation userDetailsService;
+
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository,
+                          UserRepository userRepository,
+                          UserDetailsServiceImplementation userDetailsService) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.userDetailsService = userDetailsService;
     }
 
     public List<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId, Optional<String> sortBy,
@@ -83,12 +89,13 @@ public class CommentService {
     }
 
     public Comment createComment(CreateCommentRequest createCommentRequest) {
-        Post post = postRepository.findById(createCommentRequest.getPostId()).orElse(null);
-        if(post == null)
-            throw new PostNotFoundException("No post found.");
         User user = userRepository.findById(createCommentRequest.getUserId()).orElse(null);
         if(user == null)
             throw new UserNotFoundException("No user found.");
+        userDetailsService.verifyUser(user);
+        Post post = postRepository.findById(createCommentRequest.getPostId()).orElse(null);
+        if(post == null)
+            throw new PostNotFoundException("No post found.");
         Comment newComment = new Comment();
         newComment.setPost(post);
         newComment.setUser(user);
@@ -102,6 +109,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if(comment == null)
             throw new CommentNotFoundException("There's no comment with given id to update.");
+        userDetailsService.verifyUser(comment.getUser());
         comment.setText(updateCommentRequest.getText());
         return commentRepository.save(comment);
     }
@@ -110,6 +118,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if(comment == null)
             throw new CommentNotFoundException("The wanted comment to delete couldn't be found.");
+        userDetailsService.verifyUser(comment.getUser());
         commentRepository.delete(comment);
     }
 }

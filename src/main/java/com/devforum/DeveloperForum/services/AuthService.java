@@ -40,10 +40,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest loginRequest) {
         String username;
-        if(userRepository.existsByEmail(loginRequest.getUsernameOrEmail()))
-            username = userRepository.findByEmail(loginRequest.getUsernameOrEmail()).get().getUsername();
+        if(userRepository.existsByEmail(loginRequest.getLoginData()))
+            username = userRepository.findByEmail(loginRequest.getLoginData()).get().getUsername();
         else
-            username = loginRequest.getUsernameOrEmail();
+            username = loginRequest.getLoginData();
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -70,7 +70,11 @@ public class AuthService {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if(authentication == null)
                 throw new NotAuthorizedException("Client is not authorized for this request.");
-            jwtTokenProvider.generateToken(authentication);
+            User user = userRepository.findByUsername(jwtTokenProvider.extractUsername(jwtToken)).orElse(null);
+            if(user == null)
+                throw new UserNotFoundException("This token shouldn't belong to any user.");
+            RefreshToken refreshToken = refreshTokenService.findByUserId(user.getId());
+            return refreshJwtToken(new RefreshJwtTokenRequest(user.getId(), refreshToken.getToken())).getJwtToken();
         }
         return jwtToken;
     }
