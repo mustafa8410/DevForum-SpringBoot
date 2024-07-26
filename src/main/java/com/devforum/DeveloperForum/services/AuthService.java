@@ -4,6 +4,7 @@ import com.devforum.DeveloperForum.entities.RefreshToken;
 import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.InvalidTokenProvidedException;
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.NotAuthorizedException;
+import com.devforum.DeveloperForum.exceptions.SecurityExceptions.RefreshTokenExpiredException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.RefreshTokenRepository;
 import com.devforum.DeveloperForum.repositories.UserRepository;
@@ -48,34 +49,40 @@ public class AuthService {
                 .authenticate(new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwtToken = jwtTokenProvider.generateToken(authentication);
-        return new AuthResponse(userRepository.findByUsername(username).get().getId(), jwtToken);
+        RefreshToken refreshToken = refreshTokenService.
+                generateRefreshToken(userRepository.findByUsername(username).get());
+        return new AuthResponse(userRepository.findByUsername(username).get().getId(), jwtToken,
+                refreshToken.getToken());
     }
 
     public AuthResponse refreshJwtToken(RefreshJwtTokenRequest refreshJwtTokenRequest) {
-        RefreshToken refreshToken = refreshTokenService.findByUserId(refreshJwtTokenRequest.getUserId());
         User user = userRepository.findById(refreshJwtTokenRequest.getUserId()).orElse(null);
         if(user == null)
             throw new UserNotFoundException("User with given id doesn't exist.");
+        RefreshToken refreshToken = refreshTokenService.findByUserId(refreshJwtTokenRequest.getUserId());
         if(!refreshToken.getToken().equals(refreshJwtTokenRequest.getRefreshToken()))
             throw new InvalidTokenProvidedException("Refresh token provided doesn't match" +
                     "with the given user's refresh token.");
+        if(refreshTokenService.isRefreshTokenExpired(refreshToken))
+            throw new RefreshTokenExpiredException("Please log in to send further requests.");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication == null)
             throw new NotAuthorizedException("Client is not authorized for this request.");
-        return new AuthResponse(refreshJwtTokenRequest.getUserId(), jwtTokenProvider.generateToken(authentication));
+        return new AuthResponse(refreshJwtTokenRequest.getUserId(), jwtTokenProvider.generateToken(authentication),
+                refreshToken.getToken());
     }
 
-    public String checkAndRefreshJwtToken(String jwtToken){
-        if(jwtTokenProvider.isTokenExpired(jwtToken)){
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if(authentication == null)
-                throw new NotAuthorizedException("Client is not authorized for this request.");
-            User user = userRepository.findByUsername(jwtTokenProvider.extractUsername(jwtToken)).orElse(null);
-            if(user == null)
-                throw new UserNotFoundException("This token shouldn't belong to any user.");
-            RefreshToken refreshToken = refreshTokenService.findByUserId(user.getId());
-            return refreshJwtToken(new RefreshJwtTokenRequest(user.getId(), refreshToken.getToken())).getJwtToken();
-        }
-        return jwtToken;
-    }
+//    public String checkAndRefreshJwtToken(String jwtToken){
+//        if(jwtTokenProvider.isTokenExpired(jwtToken)){
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            if(authentication == null)
+//                throw new NotAuthorizedException("Client is not authorized for this request.");
+//            User user = userRepository.findByUsername(jwtTokenProvider.extractUsername(jwtToken)).orElse(null);
+//            if(user == null)
+//                throw new UserNotFoundException("This token shouldn't belong to any user.");
+//            RefreshToken refreshToken = refreshTokenService.findByUserId(user.getId());
+//            return refreshJwtToken(new RefreshJwtTokenRequest(user.getId(), refreshToken.getToken())).getJwtToken();
+//        }
+//        return jwtToken;
+//    }
 }

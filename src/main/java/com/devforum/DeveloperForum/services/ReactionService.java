@@ -5,6 +5,7 @@ import com.devforum.DeveloperForum.enums.PostTag;
 import com.devforum.DeveloperForum.enums.ReactionType;
 import com.devforum.DeveloperForum.exceptions.CommentExceptions.CommentNotFoundException;
 import com.devforum.DeveloperForum.exceptions.PostExceptions.PostNotFoundException;
+import com.devforum.DeveloperForum.exceptions.ReactionExceptions.NotAllowedToReactToSelfException;
 import com.devforum.DeveloperForum.exceptions.ReactionExceptions.ReactionAlreadyExistsException;
 import com.devforum.DeveloperForum.exceptions.ReactionExceptions.ReactionNotFoundException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
@@ -144,7 +145,7 @@ public class ReactionService {
     }
 
     public ReactionResponse createReaction(CreateReactionRequest createReactionRequest) {
-        if(userRepository.findById(createReactionRequest.getReactedEntityId()).isEmpty())
+        if(!userRepository.existsById(createReactionRequest.getReactorId()))
             throw new UserNotFoundException("There's no user with such id to react to something.");
         ReactionType reactionType = ReactionType.valueOf(createReactionRequest.getReactionType());
         if(createReactionRequest.getReactionTo().equals("post")){
@@ -155,6 +156,9 @@ public class ReactionService {
                 throw new ReactionAlreadyExistsException("Reaction already exists with given reactor and post." +
                         " This request shouldn't have been received.");
             User poster = post.get().getUser();
+            if(poster.getId().equals(createReactionRequest.getReactorId()))
+                throw new NotAllowedToReactToSelfException("A user can't react to their own post. " +
+                        "This request shouldn't have been received.");
             PostReaction reaction = new PostReaction();
             reaction.setReactionType(reactionType);
             reaction.setPost(post.get());
@@ -176,6 +180,9 @@ public class ReactionService {
                 throw new ReactionAlreadyExistsException("Reaction already exists with given reactor and post." +
                         " This request shouldn't have been received.");
             User poster = comment.get().getUser();
+            if(poster.getId().equals(createReactionRequest.getReactorId()))
+                throw new NotAllowedToReactToSelfException("A user can't react to their own comment. " +
+                        "This request shouldn't have been received.");
             CommentReaction reaction = new CommentReaction();
             reaction.setReactionType(reactionType);
             reaction.setComment(comment.get());
@@ -205,7 +212,7 @@ public class ReactionService {
             PostReaction reaction = postReactionRepository.findById(reactionId).get();
             User poster = reaction.getPost().getUser();
             if(newReactionType.equals(reaction.getReactionType()))
-                throw new ReactionAlreadyExistsException("This reaction already exist," +
+                throw new ReactionAlreadyExistsException("This reaction already exists," +
                         " this request shouldn't have been sent normally.");
             if(newReactionType.equals(ReactionType.DISAGREE)){
                 poster.setInteractionCount(poster.getInteractionCount() - 2);
@@ -223,7 +230,7 @@ public class ReactionService {
             User commenter = reaction.getComment().getUser();
             PostTag postTag = reaction.getComment().getPost().getPostTag();
             if(newReactionType.equals(reaction.getReactionType()))
-                throw new ReactionAlreadyExistsException("This reaction already exist," +
+                throw new ReactionAlreadyExistsException("This reaction already exists," +
                         " this request shouldn't have been sent normally.");
             if(newReactionType.equals(ReactionType.DISAGREE)){
                 if(postTag.equals(PostTag.QUESTION) && reaction.getReactionType().equals(ReactionType.HELPFUL)){

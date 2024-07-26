@@ -34,4 +34,8 @@ public class RefreshTokenService {
             throw new RefreshTokenNotFoundException("Refresh token not found.");
         return refreshToken;
     }
+
+    public boolean isRefreshTokenExpired(RefreshToken refreshToken){
+        return refreshToken.getExpiryDate().before(Date.from(Instant.now()));
+    }
 }

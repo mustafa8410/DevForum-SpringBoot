@@ -1,5 +1,6 @@
 package com.devforum.DeveloperForum.exceptions.ExceptionHandlers;
 
+import com.devforum.DeveloperForum.exceptions.ReactionExceptions.NotAllowedToReactToSelfException;
 import com.devforum.DeveloperForum.exceptions.ReactionExceptions.ReactionAlreadyExistsException;
 import com.devforum.DeveloperForum.exceptions.ReactionExceptions.ReactionNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,11 @@ public class ReactionExceptionHandler {
 
     @ExceptionHandler(ReactionAlreadyExistsException.class)
     private ResponseEntity<String> handleReactionAlreadyExists(ReactionAlreadyExistsException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NotAllowedToReactToSelfException.class)
+    private ResponseEntity<String> handleNotAllowedToReactToSelf(NotAllowedToReactToSelfException exception){
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
     }
 }
