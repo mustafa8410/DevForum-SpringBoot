@@ -1,10 +1,5 @@
 package com.devforum.DeveloperForum.controllers;
 
-import com.devforum.DeveloperForum.entities.RefreshToken;
-import com.devforum.DeveloperForum.exceptions.UserExceptions.EmailAlreadyExistsException;
-import com.devforum.DeveloperForum.exceptions.UserExceptions.UsernameAlreadyExistsException;
-import com.devforum.DeveloperForum.repositories.UserRepository;
-import com.devforum.DeveloperForum.requests.CreateUserRequest;
 import com.devforum.DeveloperForum.requests.LoginRequest;
 import com.devforum.DeveloperForum.requests.RefreshJwtTokenRequest;
 import com.devforum.DeveloperForum.responses.AuthResponse;

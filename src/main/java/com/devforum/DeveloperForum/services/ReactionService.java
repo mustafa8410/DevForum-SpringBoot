@@ -213,7 +213,7 @@ public class ReactionService {
             User poster = reaction.getPost().getUser();
             if(newReactionType.equals(reaction.getReactionType()))
                 throw new ReactionAlreadyExistsException("This reaction already exists," +
-                        " this request shouldn't have been sent normally.");
+                        " this request shouldn't have been received.");
             if(newReactionType.equals(ReactionType.DISAGREE)){
                 poster.setInteractionCount(poster.getInteractionCount() - 2);
                 poster.checkForRepRankUpgrade();
@@ -256,6 +256,7 @@ public class ReactionService {
 
     public ReactionResponse updateReactionByUserIdAndEntityId(Long userId, Long entityId, String reactionTo,
                                                               UpdateReactionRequest updateReactionRequest) {
+        ReactionType newReactionType = ReactionType.valueOf(updateReactionRequest.getNewReactionType());
         User reactor = userRepository.findById(userId).orElse(null);
         if(reactor == null)
             throw new UserNotFoundException("No user found with given id.");
@@ -269,7 +270,16 @@ public class ReactionService {
             if(reaction.getReactionType().equals(ReactionType.valueOf(updateReactionRequest.getNewReactionType())))
                 throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
                         "This request shouldn't have been sent.");
-            reaction.setReactionType(ReactionType.valueOf(updateReactionRequest.getNewReactionType()));
+            User poster = post.getUser();
+            reaction.setReactionType(ReactionType.valueOf(newReactionType.toString()));
+            if(newReactionType.equals(ReactionType.DISAGREE)){
+                poster.setInteractionCount(poster.getInteractionCount() - 2);
+                poster.checkForRepRankUpgrade();
+            }
+            else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
+                poster.setInteractionCount(poster.getInteractionCount() + 2);
+                poster.checkForRepRankUpgrade();
+            }
             return new ReactionResponse(postReactionRepository.save(reaction));
         }
         else if(reactionTo.equals("comment")){
@@ -283,7 +293,25 @@ public class ReactionService {
             if(reaction.getReactionType().equals(ReactionType.valueOf(updateReactionRequest.getNewReactionType())))
                 throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
                         "This request shouldn't have been sent.");
-            reaction.setReactionType(ReactionType.valueOf(updateReactionRequest.getNewReactionType()));
+            User commenter = reaction.getComment().getUser();
+            PostTag postTag = reaction.getComment().getPost().getPostTag();
+            reaction.setReactionType(ReactionType.valueOf(newReactionType.toString()));
+            if(newReactionType.equals(ReactionType.DISAGREE)){
+                if(postTag.equals(PostTag.QUESTION) && reaction.getReactionType().equals(ReactionType.HELPFUL)){
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
+                    commenter.checkForHelpfulRankUpgrade();
+                }
+                commenter.setInteractionCount(commenter.getInteractionCount() - 2);
+                commenter.checkForRepRankUpgrade();
+            }
+            else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
+                if(postTag.equals(PostTag.QUESTION) && newReactionType.equals(ReactionType.HELPFUL)){
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
+                    commenter.checkForHelpfulRankUpgrade();
+                }
+                commenter.setInteractionCount(commenter.getInteractionCount() + 2);
+                commenter.checkForRepRankUpgrade();
+            }
             return new ReactionResponse(commentReactionRepository.save(reaction));
         }
         throw new IllegalArgumentException();
@@ -295,6 +323,13 @@ public class ReactionService {
             if(toDelete == null)
                 throw new ReactionNotFoundException("Post reaction with given information not found.");
             toDelete.getPost().setNumberOfReactions(toDelete.getPost().getNumberOfReactions() - 1);
+            User poster = toDelete.getPost().getUser();
+            poster.setInteractionCount(poster.getInteractionCount() - 1);
+            poster.checkForRepRankUpgrade();
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL)){
+                poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                poster.checkForHelpfulRankUpgrade();
+            }
             postReactionRepository.delete(toDelete);
         }
         else if(reactionTo.equals("comment")){
@@ -302,6 +337,14 @@ public class ReactionService {
             if(toDelete == null)
                 throw new ReactionNotFoundException("Comment reaction with given information not found.");
             toDelete.getComment().setNumberOfReactions(toDelete.getComment().getNumberOfReactions() - 1);
+            User commenter = toDelete.getComment().getUser();
+            commenter.setInteractionCount(commenter.getInteractionCount() - 1);
+            commenter.checkForRepRankUpgrade();
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) &&
+                    toDelete.getComment().getPost().getPostTag().equals(PostTag.QUESTION)){
+                commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
+                commenter.checkForHelpfulRankUpgrade();
+            }
             commentReactionRepository.delete(toDelete);
         }
         throw new IllegalArgumentException();
@@ -321,6 +364,9 @@ public class ReactionService {
                 throw new ReactionNotFoundException("Specified reaction to the post not found.");
             postReactionRepository.delete(toDelete);
             post.setNumberOfReactions(post.getNumberOfReactions() - 1);
+            User poster = toDelete.getPost().getUser();
+            poster.setInteractionCount(poster.getInteractionCount() - 1);
+            poster.checkForRepRankUpgrade();
         }
         else if(reactionTo.equals("comment")){
             Comment comment = commentRepository.findById(entityId).orElse(null);
@@ -332,6 +378,14 @@ public class ReactionService {
                 throw new ReactionNotFoundException("Specified reaction to the comment not found.");
             commentReactionRepository.delete(toDelete);
             comment.setNumberOfReactions(comment.getNumberOfReactions() - 1);
+            User commenter = toDelete.getComment().getUser();
+            commenter.setInteractionCount(commenter.getInteractionCount() - 1);
+            commenter.checkForRepRankUpgrade();
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) &&
+                    comment.getPost().getPostTag().equals(PostTag.QUESTION)){
+                commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
+                commenter.checkForHelpfulRankUpgrade();
+            }
         }
             throw new IllegalArgumentException();
     }

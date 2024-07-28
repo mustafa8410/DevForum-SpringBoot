@@ -6,7 +6,6 @@ import com.devforum.DeveloperForum.exceptions.SecurityExceptions.InvalidTokenPro
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.NotAuthorizedException;
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.RefreshTokenExpiredException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
-import com.devforum.DeveloperForum.repositories.RefreshTokenRepository;
 import com.devforum.DeveloperForum.repositories.UserRepository;
 import com.devforum.DeveloperForum.requests.LoginRequest;
 import com.devforum.DeveloperForum.requests.RefreshJwtTokenRequest;
@@ -16,7 +15,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,8 +29,8 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
 
     public AuthService(UserRepository userRepository, AuthenticationManager authenticationManager,
-                       JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder,
-                       RefreshTokenRepository refreshTokenRepository, UserDetailsServiceImplementation userDetailsService, RefreshTokenService refreshTokenService) {
+                       JwtTokenProvider jwtTokenProvider,
+                       UserDetailsServiceImplementation userDetailsService, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;

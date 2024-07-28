@@ -1,9 +1,6 @@
 package com.devforum.DeveloperForum.exceptions.ExceptionHandlers;
 
-import com.devforum.DeveloperForum.exceptions.SecurityExceptions.InvalidTokenProvidedException;
-import com.devforum.DeveloperForum.exceptions.SecurityExceptions.NotAuthorizedException;
-import com.devforum.DeveloperForum.exceptions.SecurityExceptions.RefreshTokenExpiredException;
-import com.devforum.DeveloperForum.exceptions.SecurityExceptions.RefreshTokenNotFoundException;
+import com.devforum.DeveloperForum.exceptions.SecurityExceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -30,5 +27,10 @@ public class SecurityExceptionHandler {
     @ExceptionHandler(NotAuthorizedException.class)
     public ResponseEntity<String> handleNotAuthorized(NotAuthorizedException exception){
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UserAlreadyLoggedInException.class)
+    public ResponseEntity<String> handleUserAlreadyLoggedIn(UserAlreadyLoggedInException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
     }
 }

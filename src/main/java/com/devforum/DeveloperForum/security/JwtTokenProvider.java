@@ -1,7 +1,6 @@
 package com.devforum.DeveloperForum.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,8 +50,20 @@ public class JwtTokenProvider {
         return getPayload(token).get("cred").toString();
     }
 
-    public boolean isTokenExpired(String token){
-        return getPayload(token).getExpiration().before(Date.from(Instant.now()));
+    public boolean isTokenUpToDate(String token){
+        return !getPayload(token).getExpiration().before(Date.from(Instant.now()));
+    }
+
+    public boolean verifyToken(String token){
+        try {
+            getPayload(token);
+            if(isTokenUpToDate(token))
+                return true;
+        }
+        catch (Exception e){
+            return false;
+        }
+        return false;
     }
 
 //    public boolean verifyUserWithToken(Optional<User> user, String token){
