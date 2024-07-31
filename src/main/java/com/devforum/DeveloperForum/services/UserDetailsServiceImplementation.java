@@ -33,6 +33,8 @@ public class UserDetailsServiceImplementation implements UserDetailsService {
     }
 
     public void verifyUser(User userInstance){
+        if(userInstance == null)
+            throw new UserNotFoundException("A non-existent user is provided.");
         JwtUserDetails userDetails = (JwtUserDetails) loadUserByUsername(SecurityContextHolder.getContext()
                 .getAuthentication().getName());
         if(userDetails.getUsername().equals(userInstance.getUsername()) && userDetails.getPassword()

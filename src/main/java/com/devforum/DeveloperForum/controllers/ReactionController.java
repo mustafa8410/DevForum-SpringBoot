@@ -60,7 +60,7 @@ public class ReactionController {
     @ResponseStatus(HttpStatus.OK)
     public ReactionResponse updateReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
                                                               @RequestParam String reactionTo,
-                                                              UpdateReactionRequest updateReactionRequest){
+                                                              @RequestBody UpdateReactionRequest updateReactionRequest){
         return reactionService.updateReactionByUserIdAndEntityId(userId, entityId, reactionTo, updateReactionRequest);
     }
 

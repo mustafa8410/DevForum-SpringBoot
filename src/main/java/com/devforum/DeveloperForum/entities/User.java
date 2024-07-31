@@ -15,9 +15,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(nullable = false)
     String email;
+    @Column(nullable = false)
     String name;
+    @Column(nullable = false)
     String username;
+    @Column(nullable = false)
     String password;
 
     @Temporal(TemporalType.DATE)

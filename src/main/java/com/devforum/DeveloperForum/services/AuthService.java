@@ -5,6 +5,7 @@ import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.InvalidTokenProvidedException;
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.NotAuthorizedException;
 import com.devforum.DeveloperForum.exceptions.SecurityExceptions.RefreshTokenExpiredException;
+import com.devforum.DeveloperForum.exceptions.UserExceptions.IncorrectUserDataException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.UserRepository;
 import com.devforum.DeveloperForum.requests.LoginRequest;
@@ -15,6 +16,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,13 +31,17 @@ public class AuthService {
 
     private final RefreshTokenService refreshTokenService;
 
+    private final PasswordEncoder passwordEncoder;
+
+
     public AuthService(UserRepository userRepository, AuthenticationManager authenticationManager,
                        JwtTokenProvider jwtTokenProvider,
-                       UserDetailsServiceImplementation userDetailsService, RefreshTokenService refreshTokenService) {
+                       RefreshTokenService refreshTokenService, PasswordEncoder passwordEncoder, UserDetailsServiceImplementation userDetailsService) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenService = refreshTokenService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
@@ -43,6 +50,11 @@ public class AuthService {
             username = userRepository.findByEmail(loginRequest.getLoginData()).get().getUsername();
         else
             username = loginRequest.getLoginData();
+        User user = userRepository.findByUsername(username).orElse(null);
+        if(user == null)
+            throw new UserNotFoundException("No user with given details exists.");
+        if(!BCrypt.checkpw(loginRequest.getPassword(), user.getPassword()))
+            throw new IncorrectUserDataException("Provided password is incorrect.");
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -66,7 +66,7 @@ public class UserService {
         newUser.setReputationRank(ReputationRank.ROOKIE);
         newUser.setInteractionCount(0L);
         newUser.setHelpfulCount(0L);
-        newUser.setHelpfulCount(null);
+        newUser.setHelpfulRank(null);
         return userRepository.save(newUser);
     }
 

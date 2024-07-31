@@ -23,7 +23,6 @@ public class JwtTokenProvider {
     public String generateToken(Authentication authentication){
         JwtUserDetails userDetails = (JwtUserDetails) authentication.getPrincipal();
         HashMap<String, Object> claims = new HashMap<>();
-        claims.put("cred", userDetails.getPassword());
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claims(claims)
@@ -46,9 +45,6 @@ public class JwtTokenProvider {
         return getPayload(token).getSubject();
     }
 
-    public String extractPassword(String token){
-        return getPayload(token).get("cred").toString();
-    }
 
     public boolean isTokenUpToDate(String token){
         return !getPayload(token).getExpiration().before(Date.from(Instant.now()));

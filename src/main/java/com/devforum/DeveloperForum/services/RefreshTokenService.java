@@ -25,6 +25,12 @@ public class RefreshTokenService {
     public RefreshToken generateRefreshToken(User user){
         String token = UUID.randomUUID().toString();
         RefreshToken refreshToken = new RefreshToken(user, token, Date.from(Instant.now().plusSeconds(VALIDITY)));
+        if(refreshTokenRepository.existsByUserId(user.getId())){
+            RefreshToken oldToken = refreshTokenRepository.findByUserId(user.getId()).get();
+            oldToken.setExpiryDate(refreshToken.getExpiryDate());
+            oldToken.setToken(refreshToken.getToken());
+            return refreshTokenRepository.save(oldToken);
+        }
         return refreshTokenRepository.save(refreshToken);
     }
 
