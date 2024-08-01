@@ -1,7 +1,7 @@
 package com.devforum.DeveloperForum.controllers;
 
-import com.devforum.DeveloperForum.requests.LoginRequest;
-import com.devforum.DeveloperForum.requests.RefreshJwtTokenRequest;
+import com.devforum.DeveloperForum.requests.SecurityRequests.LoginRequest;
+import com.devforum.DeveloperForum.requests.SecurityRequests.RefreshJwtTokenRequest;
 import com.devforum.DeveloperForum.responses.AuthResponse;
 import com.devforum.DeveloperForum.services.AuthService;
 import org.springframework.http.HttpStatus;

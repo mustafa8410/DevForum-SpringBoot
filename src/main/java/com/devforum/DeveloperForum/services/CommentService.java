@@ -5,23 +5,24 @@ import com.devforum.DeveloperForum.entities.Post;
 import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.exceptions.CommentExceptions.CommentNotFoundException;
 import com.devforum.DeveloperForum.exceptions.CommentExceptions.InvalidQueryStatementProvidedException;
+import com.devforum.DeveloperForum.exceptions.GlobalExceptions.NoUpdateProvidedException;
+import com.devforum.DeveloperForum.exceptions.GlobalExceptions.NullDataProvidedException;
 import com.devforum.DeveloperForum.exceptions.PostExceptions.PostNotFoundException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.CommentRepository;
 import com.devforum.DeveloperForum.repositories.PostRepository;
 import com.devforum.DeveloperForum.repositories.UserRepository;
-import com.devforum.DeveloperForum.requests.CreateCommentRequest;
-import com.devforum.DeveloperForum.requests.UpdateCommentRequest;
+import com.devforum.DeveloperForum.requests.CommentRequests.CommentCreateRequest;
+import com.devforum.DeveloperForum.requests.CommentRequests.CommentUpdateRequest;
 import com.devforum.DeveloperForum.responses.CommentResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
@@ -40,16 +41,36 @@ public class CommentService {
         this.userDetailsService = userDetailsService;
     }
 
-    public List<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId, Optional<String> sortBy,
+    public Page<CommentResponse> getAllComments(Optional<Long> postId, Optional<Long> userId, Optional<String> sortBy,
                                                 int page, int pageSize){
         Pageable pageable = PageRequest.of(page, pageSize);
-        List<Comment> commentList;
-        if(postId.isEmpty() && userId.isEmpty())
-            throw new InvalidQueryStatementProvidedException
-                    ("One query statement must be provided for this method to execute.");
-        else if(postId.isPresent() && userId.isPresent())
-            throw new InvalidQueryStatementProvidedException
-                    ("Only post id or user id must be provided in the query statement.");
+        Page<Comment> commentList;
+        if(postId.isEmpty() && userId.isEmpty()){
+            if(sortBy.isEmpty() || sortBy.get().equals("popularity")){
+                commentList = commentRepository.findAllByOrderByNumberOfReactionsDescCommentDateDesc(pageable);
+            }
+            else
+                throw new InvalidQueryStatementProvidedException
+                        ("Only sorting by popularity is allowed in this filtering case.");
+        }
+        else if(postId.isPresent() && userId.isPresent()){
+            Post post = postRepository.findById(postId.get()).orElse(null);
+            if(post == null)
+                throw new PostNotFoundException("Post not found.");
+            User commenter = userRepository.findById(userId.get()).orElse(null);
+            if(commenter == null)
+                throw new UserNotFoundException("User not found.");
+            if(sortBy.isEmpty() || sortBy.get().equals("popularity"))
+                commentList = commentRepository.findAllByPostIdAndUserIdOrderByNumberOfReactionsDescCommentDateDesc
+                        (postId.get(), userId.get(), pageable);
+            else if(sortBy.get().equals("most_recent"))
+                commentList = commentRepository.findAllByPostIdAndUserIdOrderByCommentDateDesc(postId.get(),
+                        userId.get(), pageable);
+            else if(sortBy.get().equals("oldest"))
+                commentList = commentRepository.findAllByPostIdAndUserId(postId.get(), userId.get(), pageable);
+            else
+                throw new InvalidQueryStatementProvidedException("Invalid query statement provided.");
+        }
         else if(postId.isPresent()){
             Post post = postRepository.findById(postId.get()).orElse(null);
             if(post == null)
@@ -61,7 +82,7 @@ public class CommentService {
             else if(sortBy.get().equals("popularity"))
                 commentList = commentRepository.findAllByPostIdOrderByNumberOfReactionsDescCommentDateDesc(postId.get(), pageable);
             else
-                throw new IllegalArgumentException();
+                throw new InvalidQueryStatementProvidedException("Invalid query statement provided.");
         }
         else{
             User commenter = userRepository.findById(userId.get()).orElse(null);
@@ -74,11 +95,11 @@ public class CommentService {
             else if(sortBy.get().equals("popularity"))
                 commentList = commentRepository.findAllByUserIdOrderByNumberOfReactionsDescCommentDateDesc(userId.get(), pageable);
             else
-                throw new IllegalArgumentException();
+                throw new InvalidQueryStatementProvidedException("Invalid query statement provided.");
         }
         if(commentList.isEmpty())
             throw new CommentNotFoundException("No comment found.");
-        return commentList.stream().map(CommentResponse::new).collect(Collectors.toList());
+        return commentList.map(CommentResponse::new);
     }
 
     public CommentResponse findCommentById(Long commentId) {
@@ -88,29 +109,45 @@ public class CommentService {
         return new CommentResponse(entity);
     }
 
-    public Comment createComment(CreateCommentRequest createCommentRequest) {
-        User user = userRepository.findById(createCommentRequest.getUserId()).orElse(null);
+    public Page<CommentResponse> findTopCommentsWithinWeek() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Comment> comments;
+        comments = commentRepository.findTopCommentsWithinWeek(Date.from(Instant.now().minusSeconds
+                (60 * 60 * 24 * 7)), pageable);
+        if(comments.isEmpty())
+            throw new CommentNotFoundException("No comments are found that are posted within the last week.");
+        return comments.map(CommentResponse::new);
+    }
+
+    public Comment createComment(CommentCreateRequest commentCreateRequest) {
+        User user = userRepository.findById(commentCreateRequest.getUserId()).orElse(null);
         if(user == null)
             throw new UserNotFoundException("No user found.");
         userDetailsService.verifyUser(user);
-        Post post = postRepository.findById(createCommentRequest.getPostId()).orElse(null);
+        Post post = postRepository.findById(commentCreateRequest.getPostId()).orElse(null);
         if(post == null)
             throw new PostNotFoundException("No post found.");
         Comment newComment = new Comment();
         newComment.setPost(post);
         newComment.setUser(user);
-        newComment.setText(createCommentRequest.getText());
+        if(commentCreateRequest.getText().isEmpty())
+            throw new NullDataProvidedException("A comment can't have an empty text.");
+        newComment.setText(commentCreateRequest.getText());
         newComment.setCommentDate(new Date());
         newComment.setNumberOfReactions(0L);
         return commentRepository.save(newComment);
     }
 
-    public Comment updateCommentById(Long commentId, UpdateCommentRequest updateCommentRequest) {
+    public Comment updateCommentById(Long commentId, CommentUpdateRequest commentUpdateRequest) {
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if(comment == null)
             throw new CommentNotFoundException("There's no comment with given id to update.");
+        if(commentUpdateRequest.getText().equals(comment.getText()))
+            throw new NoUpdateProvidedException("No update to the current comment has been provided.");
+        if(commentUpdateRequest.getText().isEmpty())
+            throw new NullDataProvidedException("A comment can't be blank, you can consider deleting it instead.");
         userDetailsService.verifyUser(comment.getUser());
-        comment.setText(updateCommentRequest.getText());
+        comment.setText(commentUpdateRequest.getText());
         return commentRepository.save(comment);
     }
 

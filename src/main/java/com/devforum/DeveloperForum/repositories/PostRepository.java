@@ -1,13 +1,17 @@
 package com.devforum.DeveloperForum.repositories;
 
+import com.devforum.DeveloperForum.entities.Comment;
 import com.devforum.DeveloperForum.entities.Post;
 import com.devforum.DeveloperForum.enums.PostCategory;
 import com.devforum.DeveloperForum.enums.PostTag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -41,5 +45,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllByUserIdAndPostTagInOrderByNumberOfReactionsDescPostDateDesc(Long userId,
                                                                                    Collection<PostTag> postTags,
                                                                                    Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.postDate >= :oneWeekAgo ORDER BY p.numberOfReactions DESC, p.postDate DESC")
+    Page<Post> findTopPostsWithinWeek(@Param("oneWeekAgo") Date oneWeekAgo, Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.postCategory = :category AND p.postDate >= :oneWeekAgo " +
+            "ORDER BY p.numberOfReactions DESC, p.postDate DESC")
+    Page<Post> findTopPostsByCategoryWithinWeek(
+            @Param("category") PostCategory category,
+            @Param("oneWeekAgo") Date oneWeekAgo,
+            Pageable pageable);
 
 }

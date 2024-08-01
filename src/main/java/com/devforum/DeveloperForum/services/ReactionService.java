@@ -10,8 +10,8 @@ import com.devforum.DeveloperForum.exceptions.ReactionExceptions.ReactionAlready
 import com.devforum.DeveloperForum.exceptions.ReactionExceptions.ReactionNotFoundException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.*;
-import com.devforum.DeveloperForum.requests.CreateReactionRequest;
-import com.devforum.DeveloperForum.requests.UpdateReactionRequest;
+import com.devforum.DeveloperForum.requests.ReactionRequests.ReactionCreateRequest;
+import com.devforum.DeveloperForum.requests.ReactionRequests.ReactionUpdateRequest;
 import com.devforum.DeveloperForum.responses.ReactionResponse;
 import org.springframework.stereotype.Service;
 
@@ -147,26 +147,26 @@ public class ReactionService {
         throw new IllegalArgumentException();
     }
 
-    public ReactionResponse createReaction(CreateReactionRequest createReactionRequest) {
-        if(!userRepository.existsById(createReactionRequest.getReactorId()))
+    public ReactionResponse createReaction(ReactionCreateRequest reactionCreateRequest) {
+        if(!userRepository.existsById(reactionCreateRequest.getReactorId()))
             throw new UserNotFoundException("There's no user with such id to react to something.");
-        userDetailsService.verifyUser(userRepository.findById(createReactionRequest.getReactorId()).get());
-        ReactionType reactionType = ReactionType.valueOf(createReactionRequest.getReactionType());
-        if(createReactionRequest.getReactionTo().equals("post")){
-            Optional<Post> post = postRepository.findById(createReactionRequest.getReactedEntityId());
+        userDetailsService.verifyUser(userRepository.findById(reactionCreateRequest.getReactorId()).get());
+        ReactionType reactionType = ReactionType.valueOf(reactionCreateRequest.getReactionType());
+        if(reactionCreateRequest.getReactionTo().equals("post")){
+            Optional<Post> post = postRepository.findById(reactionCreateRequest.getReactedEntityId());
             if(post.isEmpty())
                 throw new PostNotFoundException("No post found to react to.");
-            if(postReactionRepository.existsByReactorIdAndPost(createReactionRequest.getReactorId(), post.get()))
+            if(postReactionRepository.existsByReactorIdAndPost(reactionCreateRequest.getReactorId(), post.get()))
                 throw new ReactionAlreadyExistsException("Reaction already exists with given reactor and post." +
                         " This request shouldn't have been received.");
             User poster = post.get().getUser();
-            if(poster.getId().equals(createReactionRequest.getReactorId()))
+            if(poster.getId().equals(reactionCreateRequest.getReactorId()))
                 throw new NotAllowedToReactToSelfException("A user can't react to their own post. " +
                         "This request shouldn't have been received.");
             PostReaction reaction = new PostReaction();
             reaction.setReactionType(reactionType);
             reaction.setPost(post.get());
-            reaction.setReactorId(createReactionRequest.getReactorId());
+            reaction.setReactorId(reactionCreateRequest.getReactorId());
             post.get().setNumberOfReactions(post.get().getNumberOfReactions() + 1);
             if(reactionType.equals(ReactionType.DISAGREE))
                 poster.setInteractionCount(poster.getInteractionCount() - 1);
@@ -175,22 +175,22 @@ public class ReactionService {
             poster.checkForRepRankUpgrade();
             return new ReactionResponse(postReactionRepository.save(reaction));
         }
-        else if(createReactionRequest.getReactionTo().equals("comment")){
-            Optional<Comment> comment = commentRepository.findById(createReactionRequest.getReactedEntityId());
+        else if(reactionCreateRequest.getReactionTo().equals("comment")){
+            Optional<Comment> comment = commentRepository.findById(reactionCreateRequest.getReactedEntityId());
             if(comment.isEmpty())
                 throw new CommentNotFoundException("No comment found to react to.");
             if(commentReactionRepository.existsByReactorIdAndComment
-                    (createReactionRequest.getReactorId(), comment.get()))
+                    (reactionCreateRequest.getReactorId(), comment.get()))
                 throw new ReactionAlreadyExistsException("Reaction already exists with given reactor and post." +
                         " This request shouldn't have been received.");
             User poster = comment.get().getUser();
-            if(poster.getId().equals(createReactionRequest.getReactorId()))
+            if(poster.getId().equals(reactionCreateRequest.getReactorId()))
                 throw new NotAllowedToReactToSelfException("A user can't react to their own comment. " +
                         "This request shouldn't have been received.");
             CommentReaction reaction = new CommentReaction();
             reaction.setReactionType(reactionType);
             reaction.setComment(comment.get());
-            reaction.setReactorId(createReactionRequest.getReactorId());
+            reaction.setReactorId(reactionCreateRequest.getReactorId());
             comment.get().setNumberOfReactions(comment.get().getNumberOfReactions() + 1);
             if(reactionType.equals(ReactionType.DISAGREE))
                 poster.setInteractionCount(poster.getInteractionCount() - 1);
@@ -261,8 +261,8 @@ public class ReactionService {
     }
 
     public ReactionResponse updateReactionByUserIdAndEntityId(Long userId, Long entityId, String reactionTo,
-                                                              UpdateReactionRequest updateReactionRequest) {
-        ReactionType newReactionType = ReactionType.valueOf(updateReactionRequest.getNewReactionType());
+                                                              ReactionUpdateRequest reactionUpdateRequest) {
+        ReactionType newReactionType = ReactionType.valueOf(reactionUpdateRequest.getNewReactionType());
         User reactor = userRepository.findById(userId).orElse(null);
         if(reactor == null)
             throw new UserNotFoundException("No user found with given id.");
@@ -274,7 +274,7 @@ public class ReactionService {
             if(reaction == null)
                 throw new ReactionNotFoundException("Post Reaction not found.");
             userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
-            if(reaction.getReactionType().equals(ReactionType.valueOf(updateReactionRequest.getNewReactionType())))
+            if(reaction.getReactionType().equals(ReactionType.valueOf(reactionUpdateRequest.getNewReactionType())))
                 throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
                         "This request shouldn't have been sent.");
             User poster = post.getUser();
@@ -298,7 +298,7 @@ public class ReactionService {
             if(reaction == null)
                 throw new ReactionNotFoundException("Comment Reaction not found.");
             userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
-            if(reaction.getReactionType().equals(ReactionType.valueOf(updateReactionRequest.getNewReactionType())))
+            if(reaction.getReactionType().equals(ReactionType.valueOf(reactionUpdateRequest.getNewReactionType())))
                 throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
                         "This request shouldn't have been sent.");
             User commenter = reaction.getComment().getUser();

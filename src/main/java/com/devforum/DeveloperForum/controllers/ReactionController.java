@@ -1,7 +1,7 @@
 package com.devforum.DeveloperForum.controllers;
 
-import com.devforum.DeveloperForum.requests.CreateReactionRequest;
-import com.devforum.DeveloperForum.requests.UpdateReactionRequest;
+import com.devforum.DeveloperForum.requests.ReactionRequests.ReactionCreateRequest;
+import com.devforum.DeveloperForum.requests.ReactionRequests.ReactionUpdateRequest;
 import com.devforum.DeveloperForum.responses.ReactionResponse;
 import com.devforum.DeveloperForum.services.ReactionService;
 import org.springframework.http.HttpStatus;
@@ -46,8 +46,8 @@ public class ReactionController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public ReactionResponse createReaction(@RequestBody CreateReactionRequest createReactionRequest){
-        return reactionService.createReaction(createReactionRequest);
+    public ReactionResponse createReaction(@RequestBody ReactionCreateRequest reactionCreateRequest){
+        return reactionService.createReaction(reactionCreateRequest);
     }
 
     @PutMapping("/{reactionId}")
@@ -60,8 +60,8 @@ public class ReactionController {
     @ResponseStatus(HttpStatus.OK)
     public ReactionResponse updateReactionByUserIdAndEntityId(@RequestParam Long userId, @RequestParam Long entityId,
                                                               @RequestParam String reactionTo,
-                                                              @RequestBody UpdateReactionRequest updateReactionRequest){
-        return reactionService.updateReactionByUserIdAndEntityId(userId, entityId, reactionTo, updateReactionRequest);
+                                                              @RequestBody ReactionUpdateRequest reactionUpdateRequest){
+        return reactionService.updateReactionByUserIdAndEntityId(userId, entityId, reactionTo, reactionUpdateRequest);
     }
 
     @DeleteMapping("/{reactionId}")

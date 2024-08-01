@@ -2,9 +2,9 @@ package com.devforum.DeveloperForum.controllers;
 
 import com.devforum.DeveloperForum.entities.User;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
-import com.devforum.DeveloperForum.requests.CreateUserRequest;
-import com.devforum.DeveloperForum.requests.DeleteUserRequest;
-import com.devforum.DeveloperForum.requests.UpdateUserRequest;
+import com.devforum.DeveloperForum.requests.UserRequests.UserCreateRequest;
+import com.devforum.DeveloperForum.requests.UserRequests.UserDeleteRequest;
+import com.devforum.DeveloperForum.requests.UserRequests.UserUpdateRequest;
 import com.devforum.DeveloperForum.responses.UserResponse;
 import com.devforum.DeveloperForum.services.UserService;
 import org.springframework.http.HttpStatus;
@@ -40,20 +40,20 @@ public class UserController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@RequestBody CreateUserRequest userRequest){
+    public User createUser(@RequestBody UserCreateRequest userRequest){
         return userService.createUser(userRequest);
     }
 
     @PutMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public User updateUserById(@PathVariable Long userId, @RequestBody UpdateUserRequest userRequest){
+    public User updateUserById(@PathVariable Long userId, @RequestBody UserUpdateRequest userRequest){
         return userService.updateUserById(userId, userRequest);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUserById(@PathVariable Long userId, @RequestBody DeleteUserRequest deleteUserRequest){
-        userService.deleteUserById(userId, deleteUserRequest);
+    public void deleteUserById(@PathVariable Long userId, @RequestBody UserDeleteRequest userDeleteRequest){
+        userService.deleteUserById(userId, userDeleteRequest);
     }
 
 }

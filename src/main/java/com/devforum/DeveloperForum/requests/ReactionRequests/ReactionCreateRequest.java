@@ -1,9 +1,9 @@
-package com.devforum.DeveloperForum.requests;
+package com.devforum.DeveloperForum.requests.ReactionRequests;
 
 import lombok.Data;
 
 @Data
-public class CreateReactionRequest {
+public class ReactionCreateRequest {
     String reactionTo;
     String reactionType;
     Long reactedEntityId;

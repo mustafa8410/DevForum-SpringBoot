@@ -1,4 +1,4 @@
-package com.devforum.DeveloperForum.requests;
+package com.devforum.DeveloperForum.requests.SecurityRequests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

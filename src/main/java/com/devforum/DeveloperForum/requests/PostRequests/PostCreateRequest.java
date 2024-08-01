@@ -1,9 +1,10 @@
-package com.devforum.DeveloperForum.requests;
+package com.devforum.DeveloperForum.requests.PostRequests;
 
 import lombok.Data;
 
 @Data
-public class UpdatePostRequest {
+public class PostCreateRequest {
+    Long userId;
     String title;
     String text;
     String postCategory;

@@ -1,10 +1,8 @@
 package com.devforum.DeveloperForum.controllers;
 
 import com.devforum.DeveloperForum.entities.Post;
-import com.devforum.DeveloperForum.exceptions.PostExceptions.PostNotFoundException;
-import com.devforum.DeveloperForum.requests.CreatePostRequest;
-import com.devforum.DeveloperForum.requests.DeletePostRequest;
-import com.devforum.DeveloperForum.requests.UpdatePostRequest;
+import com.devforum.DeveloperForum.requests.PostRequests.PostCreateRequest;
+import com.devforum.DeveloperForum.requests.PostRequests.PostUpdateRequest;
 import com.devforum.DeveloperForum.responses.PostPreviewResponse;
 import com.devforum.DeveloperForum.responses.PostResponse;
 import com.devforum.DeveloperForum.services.PostService;
@@ -42,16 +40,22 @@ public class PostController {
         return postService.findPostById(postId);
     }
 
+    @GetMapping("/top")
+    @ResponseStatus(HttpStatus.FOUND)
+    public Page<PostPreviewResponse> findTopPostsWithinWeek(@RequestParam Optional<String> postCategory){
+        return postService.findTopPostsWithinWeek(postCategory);
+    }
+
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public Post createPost(@RequestBody CreatePostRequest postRequest){
+    public Post createPost(@RequestBody PostCreateRequest postRequest){
         return postService.createPost(postRequest);
     }
 
     @PutMapping("/{postId}")
     @ResponseStatus(HttpStatus.OK)
-    public Post updatePostById(@PathVariable Long postId, @RequestBody UpdatePostRequest updatePostRequest){
-        return postService.updatePostById(postId, updatePostRequest);
+    public Post updatePostById(@PathVariable Long postId, @RequestBody PostUpdateRequest postUpdateRequest){
+        return postService.updatePostById(postId, postUpdateRequest);
     }
 
     @DeleteMapping("/{postId}")

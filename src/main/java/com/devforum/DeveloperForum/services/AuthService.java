@@ -8,8 +8,8 @@ import com.devforum.DeveloperForum.exceptions.SecurityExceptions.RefreshTokenExp
 import com.devforum.DeveloperForum.exceptions.UserExceptions.IncorrectUserDataException;
 import com.devforum.DeveloperForum.exceptions.UserExceptions.UserNotFoundException;
 import com.devforum.DeveloperForum.repositories.UserRepository;
-import com.devforum.DeveloperForum.requests.LoginRequest;
-import com.devforum.DeveloperForum.requests.RefreshJwtTokenRequest;
+import com.devforum.DeveloperForum.requests.SecurityRequests.LoginRequest;
+import com.devforum.DeveloperForum.requests.SecurityRequests.RefreshJwtTokenRequest;
 import com.devforum.DeveloperForum.responses.AuthResponse;
 import com.devforum.DeveloperForum.security.JwtTokenProvider;
 import org.springframework.security.authentication.AuthenticationManager;

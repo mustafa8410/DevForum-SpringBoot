@@ -22,10 +22,8 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication){
         JwtUserDetails userDetails = (JwtUserDetails) authentication.getPrincipal();
-        HashMap<String, Object> claims = new HashMap<>();
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .claims(claims)
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusSeconds(VALIDITY)))
                 .signWith(generateKey())

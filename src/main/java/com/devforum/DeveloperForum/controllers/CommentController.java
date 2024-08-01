@@ -1,15 +1,14 @@
 package com.devforum.DeveloperForum.controllers;
 
 import com.devforum.DeveloperForum.entities.Comment;
-import com.devforum.DeveloperForum.exceptions.CommentExceptions.CommentNotFoundException;
-import com.devforum.DeveloperForum.requests.CreateCommentRequest;
-import com.devforum.DeveloperForum.requests.UpdateCommentRequest;
+import com.devforum.DeveloperForum.requests.CommentRequests.CommentCreateRequest;
+import com.devforum.DeveloperForum.requests.CommentRequests.CommentUpdateRequest;
 import com.devforum.DeveloperForum.responses.CommentResponse;
 import com.devforum.DeveloperForum.services.CommentService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -23,7 +22,7 @@ public class CommentController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.FOUND)
-    public List<CommentResponse> getAllComments(@RequestParam Optional<Long> postId,
+    public Page<CommentResponse> getAllComments(@RequestParam Optional<Long> postId,
                                                 @RequestParam Optional<Long> userId,
                                                 @RequestParam Optional<String> sortBy,
                                                 @RequestParam(defaultValue = "0") int page,
@@ -37,16 +36,22 @@ public class CommentController {
         return commentService.findCommentById(commentId);
     }
 
+    @GetMapping("/top")
+    @ResponseStatus(HttpStatus.FOUND)
+    public Page<CommentResponse> findTopCommentsWithinWeek(){
+        return commentService.findTopCommentsWithinWeek();
+    }
+
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public Comment createComment(@RequestBody CreateCommentRequest createCommentRequest){
-        return commentService.createComment(createCommentRequest);
+    public Comment createComment(@RequestBody CommentCreateRequest commentCreateRequest){
+        return commentService.createComment(commentCreateRequest);
     }
 
     @PutMapping("/{commentId}")
     @ResponseStatus(HttpStatus.OK)
-    public Comment updateCommentById(@PathVariable Long commentId, @RequestBody UpdateCommentRequest updateCommentRequest){
-        return commentService.updateCommentById(commentId, updateCommentRequest);
+    public Comment updateCommentById(@PathVariable Long commentId, @RequestBody CommentUpdateRequest commentUpdateRequest){
+        return commentService.updateCommentById(commentId, commentUpdateRequest);
     }
 
     @DeleteMapping("/{commentId}")
