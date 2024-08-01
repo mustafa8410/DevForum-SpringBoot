@@ -1,5 +1,6 @@
 package com.devforum.DeveloperForum.config;
 
+import com.devforum.DeveloperForum.security.JwtAuthenticationEntryPoint;
 import com.devforum.DeveloperForum.security.JwtAuthenticationFilter;
 import com.devforum.DeveloperForum.services.UserDetailsServiceImplementation;
 import org.springframework.context.annotation.Bean;
@@ -26,16 +27,22 @@ public class SecurityConfiguration {
 
     private final UserDetailsServiceImplementation userDetailsServiceImplementation;
 
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
     public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter,
-                                 UserDetailsServiceImplementation userDetailsServiceImplementation) {
+                                 UserDetailsServiceImplementation userDetailsServiceImplementation,
+                                 JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsServiceImplementation = userDetailsServiceImplementation;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity.csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(registry -> {
                     registry.requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users/**").permitAll()

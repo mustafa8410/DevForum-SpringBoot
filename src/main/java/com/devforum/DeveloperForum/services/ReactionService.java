@@ -340,6 +340,7 @@ public class ReactionService {
                 poster.checkForHelpfulRankUpgrade();
             }
             postReactionRepository.delete(toDelete);
+            return;
         }
         else if(reactionTo.equals("comment")){
             CommentReaction toDelete = commentReactionRepository.findById(reactionId).orElse(null);
@@ -356,6 +357,7 @@ public class ReactionService {
                 commenter.checkForHelpfulRankUpgrade();
             }
             commentReactionRepository.delete(toDelete);
+            return;
         }
         throw new IllegalArgumentException();
     }
@@ -378,6 +380,7 @@ public class ReactionService {
             User poster = toDelete.getPost().getUser();
             poster.setInteractionCount(poster.getInteractionCount() - 1);
             poster.checkForRepRankUpgrade();
+            return;
         }
         else if(reactionTo.equals("comment")){
             Comment comment = commentRepository.findById(entityId).orElse(null);
@@ -398,6 +401,7 @@ public class ReactionService {
                 commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
                 commenter.checkForHelpfulRankUpgrade();
             }
+            return;
         }
             throw new IllegalArgumentException();
     }
