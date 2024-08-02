@@ -238,22 +238,65 @@ public class ReactionService {
             if(newReactionType.equals(reaction.getReactionType()))
                 throw new ReactionAlreadyExistsException("This reaction already exists," +
                         " this request shouldn't have been sent normally.");
-            if(newReactionType.equals(ReactionType.DISAGREE)){
-                if(postTag.equals(PostTag.QUESTION) && reaction.getReactionType().equals(ReactionType.HELPFUL)){
-                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
-                    commenter.checkForHelpfulRankUpgrade();
+//            if(newReactionType.equals(ReactionType.DISAGREE)){
+//                if(postTag.equals(PostTag.QUESTION) && reaction.getReactionType().equals(ReactionType.HELPFUL)){
+//                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
+//                    commenter.checkForHelpfulRankUpgrade();
+//                }
+//                commenter.setInteractionCount(commenter.getInteractionCount() - 2);
+//                commenter.checkForRepRankUpgrade();
+//            }
+//            else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
+//                if(postTag.equals(PostTag.QUESTION) && newReactionType.equals(ReactionType.HELPFUL)){
+//                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
+//                    commenter.checkForHelpfulRankUpgrade();
+//                }
+//                commenter.setInteractionCount(commenter.getInteractionCount() + 2);
+//                commenter.checkForRepRankUpgrade();
+//            }
+            if(postTag.equals(PostTag.QUESTION)){
+                if(reaction.getReactionType().equals(ReactionType.HELPFUL)){
+                    //this means that we are going to REMOVE helpful, which causes a drop in helpfulCount
+                    if(newReactionType.equals(ReactionType.DISAGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
+                    else if(newReactionType.equals(ReactionType.AGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
                 }
+                else if(newReactionType.equals(ReactionType.HELPFUL)){
+                    //new reaction is helpful, so an increase in helpfulCount is the case
+                    if(reaction.getReactionType().equals(ReactionType.AGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() + 1);
+                    else if(reaction.getReactionType().equals(ReactionType.DISAGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
+                }
+                else if(reaction.getReactionType().equals(ReactionType.AGREE)
+                        && newReactionType.equals(ReactionType.DISAGREE)){
+                    // 1 point drop is the case
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
+                }
+                else if(reaction.getReactionType().equals(ReactionType.DISAGREE)
+                        && newReactionType.equals(ReactionType.AGREE)){
+                    // increasing by 1 point
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 1);
+                }
+                else{
+                    //no other such thing is possible
+                    throw new RuntimeException();
+                }
+                commenter.checkForHelpfulRankUpgrade();
+            }
+            if(newReactionType.equals(ReactionType.DISAGREE)){
+                // 2 drops in interaction count is certain
                 commenter.setInteractionCount(commenter.getInteractionCount() - 2);
-                commenter.checkForRepRankUpgrade();
             }
             else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
-                if(postTag.equals(PostTag.QUESTION) && newReactionType.equals(ReactionType.HELPFUL)){
-                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
-                    commenter.checkForHelpfulRankUpgrade();
-                }
+                // increase by 2 points is certain
                 commenter.setInteractionCount(commenter.getInteractionCount() + 2);
-                commenter.checkForRepRankUpgrade();
             }
+            else{
+                //in other cases, such as HELPFUL -> AGREE, nothing changes
+            }
+            commenter.checkForRepRankUpgrade();
             reaction.setReactionType(newReactionType);
             return new ReactionResponse(commentReactionRepository.save(reaction));
         }
@@ -303,22 +346,66 @@ public class ReactionService {
                         "This request shouldn't have been sent.");
             User commenter = reaction.getComment().getUser();
             PostTag postTag = reaction.getComment().getPost().getPostTag();
-            if(newReactionType.equals(ReactionType.DISAGREE)){
-                if(postTag.equals(PostTag.QUESTION) && reaction.getReactionType().equals(ReactionType.HELPFUL)){
-                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
-                    commenter.checkForHelpfulRankUpgrade();
+//          if(newReactionType.equals(ReactionType.DISAGREE)){
+//              if(postTag.equals(PostTag.QUESTION) && reaction.getReactionType().equals(ReactionType.HELPFUL)){
+//                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
+//                    commenter.checkForHelpfulRankUpgrade();
+//               }
+//               commenter.setInteractionCount(commenter.getInteractionCount() - 2);
+//               commenter.checkForRepRankUpgrade();
+//           }
+//           else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
+//               if(postTag.equals(PostTag.QUESTION) && newReactionType.equals(ReactionType.HELPFUL)){
+//                   commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
+//                   commenter.checkForHelpfulRankUpgrade();
+//               }
+//               commenter.setInteractionCount(commenter.getInteractionCount() + 2);
+//               commenter.checkForRepRankUpgrade();
+//           }
+            if(postTag.equals(PostTag.QUESTION)){
+                if(reaction.getReactionType().equals(ReactionType.HELPFUL)){
+                    //this means that we are going to REMOVE helpful, which causes a drop in helpfulCount
+                    if(newReactionType.equals(ReactionType.DISAGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() - 2);
+                    else if(newReactionType.equals(ReactionType.AGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
                 }
+                else if(newReactionType.equals(ReactionType.HELPFUL)){
+                    //new reaction is helpful, so an increase in helpfulCount is the case
+                    if(reaction.getReactionType().equals(ReactionType.AGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() + 1);
+                    else if(reaction.getReactionType().equals(ReactionType.DISAGREE))
+                        commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
+                }
+                else if(reaction.getReactionType().equals(ReactionType.AGREE)
+                        && newReactionType.equals(ReactionType.DISAGREE)){
+                    // 1 point drop is the case
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
+                }
+                else if(reaction.getReactionType().equals(ReactionType.DISAGREE)
+                        && newReactionType.equals(ReactionType.AGREE)){
+                    // increasing by 1 point
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 1);
+                }
+                else{
+                    //no other such thing is possible
+                    throw new RuntimeException();
+                }
+                commenter.checkForHelpfulRankUpgrade();
+            }
+            if(newReactionType.equals(ReactionType.DISAGREE)){
+                // 2 drops in interaction count is certain
                 commenter.setInteractionCount(commenter.getInteractionCount() - 2);
-                commenter.checkForRepRankUpgrade();
             }
             else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
-                if(postTag.equals(PostTag.QUESTION) && newReactionType.equals(ReactionType.HELPFUL)){
-                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 2);
-                    commenter.checkForHelpfulRankUpgrade();
-                }
+                // increase by 2 points is certain
                 commenter.setInteractionCount(commenter.getInteractionCount() + 2);
-                commenter.checkForRepRankUpgrade();
             }
+            else{
+                //in other cases, such as HELPFUL -> AGREE, nothing changes
+            }
+            commenter.checkForRepRankUpgrade();
+
             reaction.setReactionType(ReactionType.valueOf(newReactionType.toString()));
             return new ReactionResponse(commentReactionRepository.save(reaction));
         }
