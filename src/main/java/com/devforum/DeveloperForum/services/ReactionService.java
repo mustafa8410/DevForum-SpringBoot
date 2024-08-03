@@ -173,6 +173,13 @@ public class ReactionService {
             else
                 poster.setInteractionCount(poster.getInteractionCount() + 1);
             poster.checkForRepRankUpgrade();
+            if(post.get().getPostTag().equals(PostTag.HELPFUL_INFO)){
+                if(reactionType.equals(ReactionType.HELPFUL))
+                    poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                else if(reactionType.equals(ReactionType.DISAGREE))
+                    poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                poster.checkForHelpfulRankUpgrade();
+            }
             return new ReactionResponse(postReactionRepository.save(reaction));
         }
         else if(reactionCreateRequest.getReactionTo().equals("comment")){
@@ -210,10 +217,12 @@ public class ReactionService {
     }
 
 
-    public ReactionResponse updateReactionById(Long reactionId, String newReaction) {
+    public ReactionResponse updateReactionById(Long reactionId, String reactionTo, String newReaction) {
         ReactionType newReactionType = ReactionType.valueOf(newReaction);
-        if(postReactionRepository.existsById(reactionId)){
-            PostReaction reaction = postReactionRepository.findById(reactionId).get();
+        if(reactionTo.equals("post")){
+            PostReaction reaction = postReactionRepository.findById(reactionId).orElse(null);
+            if(reaction == null)
+                throw new ReactionNotFoundException("No post reaction with given id is found.");
             userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
             User poster = reaction.getPost().getUser();
             if(newReactionType.equals(reaction.getReactionType()))
@@ -227,11 +236,34 @@ public class ReactionService {
                 poster.setInteractionCount(poster.getInteractionCount() + 2);
                 poster.checkForRepRankUpgrade();
             }
+            if((reaction.getPost().getPostTag().equals(PostTag.HELPFUL_INFO))){
+                if(reaction.getReactionType().equals(ReactionType.AGREE)){
+                    if(newReactionType.equals(ReactionType.DISAGREE))
+                        poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                    else
+                        poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                }
+                else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
+                    if(newReactionType.equals(ReactionType.AGREE))
+                        poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                    else
+                        poster.setHelpfulCount(poster.getHelpfulCount() + 2);
+                }
+                else{
+                    if(newReactionType.equals(ReactionType.AGREE))
+                        poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                    else
+                        poster.setHelpfulCount(poster.getHelpfulCount() - 2);
+                }
+                poster.checkForHelpfulRankUpgrade();
+            }
             reaction.setReactionType(newReactionType);
             return new ReactionResponse(postReactionRepository.save(reaction));
         }
-        else if(commentReactionRepository.existsById(reactionId)){
-            CommentReaction reaction = commentReactionRepository.findById(reactionId).get();
+        else if(reactionTo.equals("comment")){
+            CommentReaction reaction = commentReactionRepository.findById(reactionId).orElse(null);
+            if(reaction == null)
+                throw new ReactionNotFoundException("No comment reaction with given id is found.");
             userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
             User commenter = reaction.getComment().getUser();
             PostTag postTag = reaction.getComment().getPost().getPostTag();
@@ -300,7 +332,8 @@ public class ReactionService {
             reaction.setReactionType(newReactionType);
             return new ReactionResponse(commentReactionRepository.save(reaction));
         }
-        throw new ReactionNotFoundException("No such reaction found to update.");
+        else
+            throw new IllegalArgumentException();
     }
 
     public ReactionResponse updateReactionByUserIdAndEntityId(Long userId, Long entityId, String reactionTo,
@@ -328,6 +361,27 @@ public class ReactionService {
             else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
                 poster.setInteractionCount(poster.getInteractionCount() + 2);
                 poster.checkForRepRankUpgrade();
+            }
+            if((reaction.getPost().getPostTag().equals(PostTag.HELPFUL_INFO))){
+                if(reaction.getReactionType().equals(ReactionType.AGREE)){
+                    if(newReactionType.equals(ReactionType.DISAGREE))
+                        poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                    else
+                        poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                }
+                else if(reaction.getReactionType().equals(ReactionType.DISAGREE)){
+                    if(newReactionType.equals(ReactionType.AGREE))
+                        poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                    else
+                        poster.setHelpfulCount(poster.getHelpfulCount() + 2);
+                }
+                else{
+                    if(newReactionType.equals(ReactionType.AGREE))
+                        poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                    else
+                        poster.setHelpfulCount(poster.getHelpfulCount() - 2);
+                }
+                poster.checkForHelpfulRankUpgrade();
             }
             reaction.setReactionType(ReactionType.valueOf(newReactionType.toString()));
             return new ReactionResponse(postReactionRepository.save(reaction));
@@ -420,10 +474,17 @@ public class ReactionService {
             userDetailsService.verifyUser(userRepository.findById(toDelete.getReactorId()).get());
             toDelete.getPost().setNumberOfReactions(toDelete.getPost().getNumberOfReactions() - 1);
             User poster = toDelete.getPost().getUser();
-            poster.setInteractionCount(poster.getInteractionCount() - 1);
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) ||
+                    toDelete.getReactionType().equals(ReactionType.AGREE))
+                poster.setInteractionCount(poster.getInteractionCount() - 1);
+            else
+                poster.setInteractionCount(poster.getInteractionCount() + 1);
             poster.checkForRepRankUpgrade();
-            if(toDelete.getReactionType().equals(ReactionType.HELPFUL)){
-                poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+            if(toDelete.getPost().getPostTag().equals(PostTag.HELPFUL_INFO)){
+                if(toDelete.getReactionType().equals(ReactionType.DISAGREE))
+                    poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                else if(toDelete.getReactionType().equals(ReactionType.HELPFUL))
+                    poster.setHelpfulCount(poster.getHelpfulCount() - 1);
                 poster.checkForHelpfulRankUpgrade();
             }
             postReactionRepository.delete(toDelete);
@@ -436,11 +497,17 @@ public class ReactionService {
             userDetailsService.verifyUser(userRepository.findById(toDelete.getReactorId()).get());
             toDelete.getComment().setNumberOfReactions(toDelete.getComment().getNumberOfReactions() - 1);
             User commenter = toDelete.getComment().getUser();
-            commenter.setInteractionCount(commenter.getInteractionCount() - 1);
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) ||
+                    toDelete.getReactionType().equals(ReactionType.AGREE))
+                commenter.setInteractionCount(commenter.getInteractionCount() - 1);
+            else
+                commenter.setInteractionCount(commenter.getInteractionCount() + 1);
             commenter.checkForRepRankUpgrade();
-            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) &&
-                    toDelete.getComment().getPost().getPostTag().equals(PostTag.QUESTION)){
-                commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
+            if(toDelete.getComment().getPost().getPostTag().equals(PostTag.QUESTION)){
+                if(toDelete.getReactionType().equals(ReactionType.DISAGREE))
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 1);
+                else if(toDelete.getReactionType().equals(ReactionType.HELPFUL))
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
                 commenter.checkForHelpfulRankUpgrade();
             }
             commentReactionRepository.delete(toDelete);
@@ -465,8 +532,19 @@ public class ReactionService {
             postReactionRepository.delete(toDelete);
             post.setNumberOfReactions(post.getNumberOfReactions() - 1);
             User poster = toDelete.getPost().getUser();
-            poster.setInteractionCount(poster.getInteractionCount() - 1);
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) ||
+                    toDelete.getReactionType().equals(ReactionType.AGREE))
+                poster.setInteractionCount(poster.getInteractionCount() - 1);
+            else
+                poster.setInteractionCount(poster.getInteractionCount() + 1);
             poster.checkForRepRankUpgrade();
+            if(toDelete.getPost().getPostTag().equals(PostTag.HELPFUL_INFO)){
+                if(toDelete.getReactionType().equals(ReactionType.DISAGREE))
+                    poster.setHelpfulCount(poster.getHelpfulCount() + 1);
+                else if(toDelete.getReactionType().equals(ReactionType.HELPFUL))
+                    poster.setHelpfulCount(poster.getHelpfulCount() - 1);
+                poster.checkForHelpfulRankUpgrade();
+            }
             return;
         }
         else if(reactionTo.equals("comment")){
@@ -481,11 +559,17 @@ public class ReactionService {
             commentReactionRepository.delete(toDelete);
             comment.setNumberOfReactions(comment.getNumberOfReactions() - 1);
             User commenter = toDelete.getComment().getUser();
-            commenter.setInteractionCount(commenter.getInteractionCount() - 1);
+            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) ||
+                    toDelete.getReactionType().equals(ReactionType.AGREE))
+                commenter.setInteractionCount(commenter.getInteractionCount() - 1);
+            else
+                commenter.setInteractionCount(commenter.getInteractionCount() + 1);
             commenter.checkForRepRankUpgrade();
-            if(toDelete.getReactionType().equals(ReactionType.HELPFUL) &&
-                    comment.getPost().getPostTag().equals(PostTag.QUESTION)){
-                commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
+            if(toDelete.getComment().getPost().getPostTag().equals(PostTag.QUESTION)){
+                if(toDelete.getReactionType().equals(ReactionType.DISAGREE))
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() + 1);
+                else if(toDelete.getReactionType().equals(ReactionType.HELPFUL))
+                    commenter.setHelpfulCount(commenter.getHelpfulCount() - 1);
                 commenter.checkForHelpfulRankUpgrade();
             }
             return;

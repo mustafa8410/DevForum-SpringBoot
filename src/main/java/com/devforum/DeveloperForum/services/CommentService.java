@@ -109,11 +109,41 @@ public class CommentService {
         return new CommentResponse(entity);
     }
 
-    public Page<CommentResponse> findTopCommentsWithinWeek() {
-        Pageable pageable = PageRequest.of(0, 10);
+    public Page<CommentResponse> findTopCommentsWithinWeek(Optional<Long> postId, Optional<Long> userId,
+                                                           int page, int pageSize) {
         Page<Comment> comments;
-        comments = commentRepository.findTopCommentsWithinWeek(Date.from(Instant.now().minusSeconds
-                (60 * 60 * 24 * 7)), pageable);
+        if(postId.isEmpty() && userId.isEmpty()) { //general top comments of the week
+            Pageable pageable = PageRequest.of(0, 10);
+            comments = commentRepository.findTopCommentsWithinWeek(Date.from(Instant.now().minusSeconds
+                    (60 * 60 * 24 * 7)), pageable);
+        }
+        else if(postId.isPresent() && userId.isPresent()){
+            Pageable pageable = PageRequest.of(page, pageSize);
+            User user = userRepository.findById(userId.get()).orElse(null);
+            if(user == null)
+                throw new UserNotFoundException("User not found.");
+            Post post = postRepository.findById(postId.get()).orElse(null);
+            if(post == null)
+                throw new PostNotFoundException("Post not found.");
+            comments = commentRepository.findTopCommentsByUserAndPostWithinWeek(user, post, Date.from(Instant.now().minusSeconds
+                    (60 * 60 * 24 * 7)), pageable);
+        }
+        else if(postId.isPresent()){
+            Pageable pageable = PageRequest.of(page, pageSize);
+            Post post = postRepository.findById(postId.get()).orElse(null);
+            if(post == null)
+                throw new PostNotFoundException("Post not found.");
+            comments = commentRepository.findTopCommentsByPostWithinWeek(post, Date.from(Instant.now().minusSeconds
+                    (60 * 60 * 24 * 7)), pageable);
+        }
+        else {
+            Pageable pageable = PageRequest.of(page, pageSize);
+            User user = userRepository.findById(userId.get()).orElse(null);
+            if(user == null)
+                throw new UserNotFoundException("User not found.");
+            comments = commentRepository.findTopCommentsByUserWithinWeek(user, Date.from(Instant.now().minusSeconds
+                    (60 * 60 * 24 * 7)), pageable);
+        }
         if(comments.isEmpty())
             throw new CommentNotFoundException("No comments are found that are posted within the last week.");
         return comments.map(CommentResponse::new);

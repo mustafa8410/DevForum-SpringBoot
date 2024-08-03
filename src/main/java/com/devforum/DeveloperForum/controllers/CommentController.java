@@ -38,8 +38,11 @@ public class CommentController {
 
     @GetMapping("/top")
     @ResponseStatus(HttpStatus.FOUND)
-    public Page<CommentResponse> findTopCommentsWithinWeek(){
-        return commentService.findTopCommentsWithinWeek();
+    public Page<CommentResponse> findTopCommentsWithinWeek(@RequestParam Optional<Long> postId,
+                                                           @RequestParam Optional<Long> userId,
+                                                           @RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int pageSize){
+        return commentService.findTopCommentsWithinWeek(postId, userId, page, pageSize);
     }
 
     @PostMapping()

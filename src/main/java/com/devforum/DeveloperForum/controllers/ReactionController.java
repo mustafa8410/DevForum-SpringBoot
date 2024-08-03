@@ -52,8 +52,9 @@ public class ReactionController {
 
     @PutMapping("/{reactionId}")
     @ResponseStatus(HttpStatus.OK)
-    public ReactionResponse updateReactionById(@PathVariable Long reactionId, @RequestParam String newReaction){
-        return reactionService.updateReactionById(reactionId,newReaction);
+    public ReactionResponse updateReactionById(@PathVariable Long reactionId, @RequestParam String reactionTo,
+                                               @RequestParam String newReaction){
+        return reactionService.updateReactionById(reactionId, reactionTo, newReaction);
     }
 
     @PutMapping()
