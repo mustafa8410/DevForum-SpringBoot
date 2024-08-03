@@ -47,7 +47,7 @@ public class ReactionService {
             reactions = commentReactionRepository.findAll().stream().map(ReactionResponse::new)
                     .collect(Collectors.toList());
             reactions.addAll(postReactionRepository.findAll().stream().map(ReactionResponse::new)
-                    .collect(Collectors.toList()));
+                    .toList());
         }
         else if(reactionTo.get().equals("post")){
             if(entityId.isEmpty())

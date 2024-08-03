@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class RefreshJwtTokenRequest {
     Long userId;
     String refreshToken;
+    String expiredJwtToken;
 }

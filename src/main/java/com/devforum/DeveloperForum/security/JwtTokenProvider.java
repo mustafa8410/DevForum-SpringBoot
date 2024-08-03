@@ -1,5 +1,7 @@
 package com.devforum.DeveloperForum.security;
 
+import com.devforum.DeveloperForum.entities.RefreshToken;
+import com.devforum.DeveloperForum.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -29,6 +31,15 @@ public class JwtTokenProvider {
                 .signWith(generateKey())
                 .compact();
 
+    }
+
+    public String generateTokenWithUser(User user){
+        return Jwts.builder()
+                .subject(user.getUsername())
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(VALIDITY)))
+                .signWith(generateKey())
+                .compact();
     }
     private SecretKey generateKey(){
         byte[] decodedKey = Base64.getDecoder().decode(SECRET_KEY);

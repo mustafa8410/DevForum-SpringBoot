@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public enum PostTag {
-    QUESTION, MEME, HELPFUL_INFO, DISCUSSION;
+    QUESTION, MEME, HELPFUL_INFO, DISCUSSION, NONE;
 
     public static Collection<PostTag> turnStringToTagCollection(Optional<List<String>> tags){
         Collection<PostTag> postTagCollection = new ArrayList<>();

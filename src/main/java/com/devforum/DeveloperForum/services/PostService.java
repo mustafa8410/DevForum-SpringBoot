@@ -165,7 +165,7 @@ public class PostService {
             newPost.setPostTag(postTag);
         }
         else
-            newPost.setPostTag(null);
+            newPost.setPostTag(PostTag.NONE);
         newPost.setPostDate(new Date());
         newPost.setPostCategory(postCategory);
         newPost.setText(postRequest.getText());
@@ -191,7 +191,7 @@ public class PostService {
             post.setPostTag(postTag);
         }
         else
-            post.setPostTag(null);
+            post.setPostTag(PostTag.NONE);
         PostCategory postCategory = PostCategory.valueOf(postUpdateRequest.getPostCategory().toUpperCase());
         post.setText(postUpdateRequest.getText());
         post.setTitle(postUpdateRequest.getTitle());

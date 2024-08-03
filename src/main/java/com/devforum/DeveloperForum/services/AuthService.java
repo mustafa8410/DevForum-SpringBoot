@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AuthService {
@@ -31,9 +32,6 @@ public class AuthService {
 
     private final RefreshTokenService refreshTokenService;
 
-    private final PasswordEncoder passwordEncoder;
-
-
     public AuthService(UserRepository userRepository, AuthenticationManager authenticationManager,
                        JwtTokenProvider jwtTokenProvider,
                        RefreshTokenService refreshTokenService, PasswordEncoder passwordEncoder, UserDetailsServiceImplementation userDetailsService) {
@@ -41,7 +39,6 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenService = refreshTokenService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
@@ -69,16 +66,18 @@ public class AuthService {
         User user = userRepository.findById(refreshJwtTokenRequest.getUserId()).orElse(null);
         if(user == null)
             throw new UserNotFoundException("User with given id doesn't exist.");
+        String expiredJwt = refreshJwtTokenRequest.getExpiredJwtToken();
+        if(!StringUtils.hasText(expiredJwt))
+            throw new NotAuthorizedException("Please log in to send further requests.");
+        if(!user.getUsername().equals(jwtTokenProvider.extractUsername(refreshJwtTokenRequest.getExpiredJwtToken())))
+            throw new NotAuthorizedException("Jwt token's and refresh token's owner users don't match.");
         RefreshToken refreshToken = refreshTokenService.findByUserId(refreshJwtTokenRequest.getUserId());
         if(!refreshToken.getToken().equals(refreshJwtTokenRequest.getRefreshToken()))
             throw new InvalidTokenProvidedException("Refresh token provided doesn't match" +
                     "with the given user's refresh token.");
         if(refreshTokenService.isRefreshTokenExpired(refreshToken))
             throw new RefreshTokenExpiredException("Please log in to send further requests.");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication == null)
-            throw new NotAuthorizedException("Client is not authorized for this request.");
-        return new AuthResponse(refreshJwtTokenRequest.getUserId(), jwtTokenProvider.generateToken(authentication),
+        return new AuthResponse(refreshJwtTokenRequest.getUserId(), jwtTokenProvider.generateTokenWithUser(user),
                 refreshToken.getToken());
     }
 
