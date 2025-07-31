@@ -150,13 +150,11 @@ public class CommentService {
     }
 
     public Comment createComment(CommentCreateRequest commentCreateRequest) {
-        User user = userRepository.findById(commentCreateRequest.getUserId()).orElse(null);
-        if(user == null)
-            throw new UserNotFoundException("No user found.");
+        User user = userRepository.findById(commentCreateRequest.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("No user found.")); ;
         userDetailsService.verifyUser(user);
-        Post post = postRepository.findById(commentCreateRequest.getPostId()).orElse(null);
-        if(post == null)
-            throw new PostNotFoundException("No post found.");
+        Post post = postRepository.findById(commentCreateRequest.getPostId())
+                .orElseThrow( () -> new PostNotFoundException("No post found."));
         Comment newComment = new Comment();
         newComment.setPost(post);
         newComment.setUser(user);
@@ -169,9 +167,8 @@ public class CommentService {
     }
 
     public Comment updateCommentById(Long commentId, CommentUpdateRequest commentUpdateRequest) {
-        Comment comment = commentRepository.findById(commentId).orElse(null);
-        if(comment == null)
-            throw new CommentNotFoundException("There's no comment with given id to update.");
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow( () -> new CommentNotFoundException("There's no comment with given id to update.") );
         if(commentUpdateRequest.getText().equals(comment.getText()))
             throw new NoUpdateProvidedException("No update to the current comment has been provided.");
         if(commentUpdateRequest.getText().isEmpty())
@@ -182,9 +179,8 @@ public class CommentService {
     }
 
     public void deleteCommentById(Long commentId) {
-        Comment comment = commentRepository.findById(commentId).orElse(null);
-        if(comment == null)
-            throw new CommentNotFoundException("The wanted comment to delete couldn't be found.");
+        Comment comment = commentRepository.findById(commentId).
+                orElseThrow( () -> new CommentNotFoundException("The wanted comment to delete couldn't be found."));
         userDetailsService.verifyUser(comment.getUser());
         commentRepository.delete(comment);
     }

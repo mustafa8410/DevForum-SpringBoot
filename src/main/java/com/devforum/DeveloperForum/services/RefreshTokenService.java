@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
+
 
 @Service
 public class RefreshTokenService {
@@ -22,23 +24,22 @@ public class RefreshTokenService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public RefreshToken generateRefreshToken(User user){
+    public RefreshToken generateRefreshToken(User user) {
         String token = UUID.randomUUID().toString();
         RefreshToken refreshToken = new RefreshToken(user, token, Date.from(Instant.now().plusSeconds(VALIDITY)));
-        if(refreshTokenRepository.existsByUserId(user.getId())){
-            RefreshToken oldToken = refreshTokenRepository.findByUserId(user.getId()).get();
-            oldToken.setExpiryDate(refreshToken.getExpiryDate());
-            oldToken.setToken(refreshToken.getToken());
-            return refreshTokenRepository.save(oldToken);
+        Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUserId(user.getId());
+        if (existingTokenOpt.isPresent()) {
+            RefreshToken existingToken = existingTokenOpt.get();
+            existingToken.setExpiryDate(refreshToken.getExpiryDate());
+            existingToken.setToken(refreshToken.getToken());
+            return refreshTokenRepository.save(existingToken);
         }
         return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken findByUserId(Long userId){
-        RefreshToken refreshToken = refreshTokenRepository.findByUserId(userId).orElse(null);
-        if(refreshToken == null)
-            throw new RefreshTokenNotFoundException("Refresh token not found.");
-        return refreshToken;
+    public RefreshToken findByUserId(Long userId) {
+        return refreshTokenRepository.findByUserId(userId)
+                .orElseThrow(() -> new RefreshTokenNotFoundException("Refresh token not found."));
     }
 
     public boolean isRefreshTokenExpired(RefreshToken refreshToken){

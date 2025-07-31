@@ -220,10 +220,10 @@ public class ReactionService {
     public ReactionResponse updateReactionById(Long reactionId, String reactionTo, String newReaction) {
         ReactionType newReactionType = ReactionType.valueOf(newReaction);
         if(reactionTo.equals("post")){
-            PostReaction reaction = postReactionRepository.findById(reactionId).orElse(null);
-            if(reaction == null)
-                throw new ReactionNotFoundException("No post reaction with given id is found.");
-            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
+            PostReaction reaction = postReactionRepository.findById(reactionId).orElseThrow(() ->
+                    new ReactionNotFoundException("No post reaction with given id is found."));
+            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).orElseThrow(() ->
+                    new UserNotFoundException("No user found with given reactor id.")));
             User poster = reaction.getPost().getUser();
             if(newReactionType.equals(reaction.getReactionType()))
                 throw new ReactionAlreadyExistsException("This reaction already exists," +
@@ -261,10 +261,10 @@ public class ReactionService {
             return new ReactionResponse(postReactionRepository.save(reaction));
         }
         else if(reactionTo.equals("comment")){
-            CommentReaction reaction = commentReactionRepository.findById(reactionId).orElse(null);
-            if(reaction == null)
-                throw new ReactionNotFoundException("No comment reaction with given id is found.");
-            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
+            CommentReaction reaction = commentReactionRepository.findById(reactionId).orElseThrow(() ->
+                    new ReactionNotFoundException("No comment reaction with given id is found."));
+            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).orElseThrow(() ->
+                    new UserNotFoundException("No user found with given reactor id.")));
             User commenter = reaction.getComment().getUser();
             PostTag postTag = reaction.getComment().getPost().getPostTag();
             if(newReactionType.equals(reaction.getReactionType()))
@@ -339,17 +339,17 @@ public class ReactionService {
     public ReactionResponse updateReactionByUserIdAndEntityId(Long userId, Long entityId, String reactionTo,
                                                               ReactionUpdateRequest reactionUpdateRequest) {
         ReactionType newReactionType = ReactionType.valueOf(reactionUpdateRequest.getNewReactionType());
-        User reactor = userRepository.findById(userId).orElse(null);
-        if(reactor == null)
-            throw new UserNotFoundException("No user found with given id.");
+        User reactor = userRepository.findById(userId).orElseThrow(() ->
+                new UserNotFoundException("No user found with given id."));
         if(reactionTo.equals("post")){
-            Post post = postRepository.findById(entityId).orElse(null);
-            if(post == null)
-                throw new PostNotFoundException("No post found with given id.");
-            PostReaction reaction = postReactionRepository.findByReactorIdAndPost(userId, post).orElse(null);
+            Post post = postRepository.findById(entityId).orElseThrow(() ->
+                    new PostNotFoundException("No post found with given id."));
+            PostReaction reaction = postReactionRepository.findByReactorIdAndPost(userId, post).orElseThrow(() ->
+                    new ReactionNotFoundException("No reaction found with given user and post."));
             if(reaction == null)
                 throw new ReactionNotFoundException("Post Reaction not found.");
-            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
+            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).orElseThrow(() ->
+                    new UserNotFoundException("No user found with given reactor id.")));
             if(reaction.getReactionType().equals(ReactionType.valueOf(reactionUpdateRequest.getNewReactionType())))
                 throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
                         "This request shouldn't have been sent.");
@@ -387,14 +387,12 @@ public class ReactionService {
             return new ReactionResponse(postReactionRepository.save(reaction));
         }
         else if(reactionTo.equals("comment")){
-            Comment comment = commentRepository.findById(entityId).orElse(null);
-            if(comment == null)
-                throw new CommentNotFoundException("No comment found with given id.");
+            Comment comment = commentRepository.findById(entityId).orElseThrow(() ->
+                    new CommentNotFoundException("No comment found with given id."));
             CommentReaction reaction = commentReactionRepository.findByReactorIdAndComment(userId, comment)
-                    .orElse(null);
-            if(reaction == null)
-                throw new ReactionNotFoundException("Comment Reaction not found.");
-            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).get());
+                    .orElseThrow(() -> new ReactionNotFoundException("No reaction found with given user and comment."));
+            userDetailsService.verifyUser(userRepository.findById(reaction.getReactorId()).orElseThrow(() ->
+                    new UserNotFoundException("No user found with given reactor id.")));
             if(reaction.getReactionType().equals(ReactionType.valueOf(reactionUpdateRequest.getNewReactionType())))
                 throw new ReactionAlreadyExistsException("Given user already reacted this way to the given post. " +
                         "This request shouldn't have been sent.");
@@ -468,10 +466,10 @@ public class ReactionService {
 
     public void deleteReactionById(Long reactionId, String reactionTo) {
         if(reactionTo.equals("post")){
-            PostReaction toDelete = postReactionRepository.findById(reactionId).orElse(null);
-            if(toDelete == null)
-                throw new ReactionNotFoundException("Post reaction with given information not found.");
-            userDetailsService.verifyUser(userRepository.findById(toDelete.getReactorId()).get());
+            PostReaction toDelete = postReactionRepository.findById(reactionId).orElseThrow(() ->
+                    new ReactionNotFoundException("No post reaction with given id is found."));
+            userDetailsService.verifyUser(userRepository.findById(toDelete.getReactorId()).orElseThrow(() ->
+                    new UserNotFoundException("No user found with given reactor id.")));
             toDelete.getPost().setNumberOfReactions(toDelete.getPost().getNumberOfReactions() - 1);
             User poster = toDelete.getPost().getUser();
             if(toDelete.getReactionType().equals(ReactionType.HELPFUL) ||
@@ -491,10 +489,10 @@ public class ReactionService {
             return;
         }
         else if(reactionTo.equals("comment")){
-            CommentReaction toDelete = commentReactionRepository.findById(reactionId).orElse(null);
-            if(toDelete == null)
-                throw new ReactionNotFoundException("Comment reaction with given information not found.");
-            userDetailsService.verifyUser(userRepository.findById(toDelete.getReactorId()).get());
+            CommentReaction toDelete = commentReactionRepository.findById(reactionId).orElseThrow(() ->
+                    new ReactionNotFoundException("No comment reaction with given id is found."));
+            userDetailsService.verifyUser(userRepository.findById(toDelete.getReactorId()).orElseThrow(() ->
+                    new UserNotFoundException("No user found with given reactor id.")));
             toDelete.getComment().setNumberOfReactions(toDelete.getComment().getNumberOfReactions() - 1);
             User commenter = toDelete.getComment().getUser();
             if(toDelete.getReactionType().equals(ReactionType.HELPFUL) ||

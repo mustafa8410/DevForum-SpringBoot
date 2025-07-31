@@ -7,6 +7,7 @@ import lombok.Data;
 
 @Data
 public class ReactionResponse {
+    Long id;
     String reactionTo;
     Long reactionId;
     ReactionType reactionType;
@@ -14,6 +15,7 @@ public class ReactionResponse {
     Long reactorId;
 
     public ReactionResponse(CommentReaction entity){
+        this.id = entity.getId();
         this.reactionTo = "comment";
         this.reactionId = entity.getId();
         this.reactionType = entity.getReactionType();
@@ -22,6 +24,7 @@ public class ReactionResponse {
     }
 
     public ReactionResponse(PostReaction entity){
+        this.id = entity.getId();
         this.reactionTo = "post";
         this.reactionId = entity.getId();
         this.reactionType = entity.getReactionType();

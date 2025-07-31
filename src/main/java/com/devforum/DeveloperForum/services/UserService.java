@@ -40,13 +40,16 @@ public class UserService {
 
     public List<UserResponse> getAllUsers() {
         List<User> userList = userRepository.findAll();
+        if(userList.isEmpty())
+            throw new UserNotFoundException("There are no users in the database.");
         return userList.stream().map(UserResponse::new).collect(Collectors.toList());
 
     }
 
     public UserResponse findUserById(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
-        return optionalUser.map(UserResponse::new).orElse(null);
+        return optionalUser.map(UserResponse::new).orElseThrow
+                (() -> new UserNotFoundException("There's no user with given id."));
     }
 
     public User createUser(UserCreateRequest userRequest) {
@@ -74,11 +77,14 @@ public class UserService {
         newUser.setReputationRank(ReputationRank.ROOKIE);
         newUser.setInteractionCount(0L);
         newUser.setHelpfulCount(0L);
-        newUser.setHelpfulRank(null);
         return userRepository.save(newUser);
     }
 
     public User updateUserById(Long userId, UserUpdateRequest userRequest) {
+        User user = userRepository.findById(userId).orElseThrow
+                (() -> new UserNotFoundException("The user that you're trying to update doesn't exist."));
+        userDetailsService.verifyUser(user);
+
         if(userRequest.getUsername().isEmpty())
             throw new NullDataProvidedException("Username can't be empty!");
         if(userRequest.getEmail().isEmpty())
@@ -87,14 +93,6 @@ public class UserService {
             throw new NullDataProvidedException("All users must have a password!");
         if(userRequest.getName().isEmpty())
             throw new NullDataProvidedException("All users must provide a name!");
-
-        User user = userRepository.findById(userId).orElse(null);
-        if(user == null){
-            throw new UserNotFoundException("The user that you're trying to update doesn't exist.");
-        }
-
-        userDetailsService.verifyUser(user);
-
 
         if(userRequest.allFieldsEqual(user) && BCrypt
                 .checkpw(userRequest.getPassword(), user.getPassword()))
@@ -126,9 +124,8 @@ public class UserService {
     }
 
     public void deleteUserById(Long userId, UserDeleteRequest userDeleteRequest) {
-        User user = userRepository.findById(userId).orElse(null);
-        if(user == null)
-            throw new UserNotFoundException("There's no user with given id to delete.");
+        User user = userRepository.findById(userId).orElseThrow
+                ( () -> new UserNotFoundException("There's no user with given id to delete."));
         userDetailsService.verifyUser(user);
         if(!BCrypt.checkpw(userDeleteRequest.getPassword(), user.getPassword()))
             throw new IncorrectUserDataException("Password provided is incorrect.");
