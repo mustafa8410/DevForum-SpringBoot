@@ -51,6 +51,8 @@ public class SecurityConfiguration {
                             .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/users").permitAll()
                             .requestMatchers("/auth/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/v3/api-docs/**", "swagger-ui/**",
+                                    "/swagger-ui.html").permitAll()
                             .anyRequest().authenticated();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::disable)
